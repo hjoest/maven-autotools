@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="Maven Autotools Plugin">
+    <body>
+        <menu name="Maven Autotools Plugin">
+            <item name="Introduction" href="/intro.html"/>
+            <item name="Download" href="/download.html"/>
+            <item name="Release Notes" href="/release-notes.html"/>
+            <item name="General Information" href="/about.html"/>
+            <item name="Road Map" href="/roadmap.html"/>
+        </menu>
+        <menu name="Documentation">
+            <item name="Getting Started" href="/getting-started.html" />
+            <item name="Guides" href="/guides.html" />
+            <item name="Examples" href="/examples.html" />
+        </menu>
+        <menu ref="reports"/>
+    </body>
+</project>
+

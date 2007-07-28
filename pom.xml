@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (C) 2006-2007 Holger Joest <hjoest@users.sourceforge.net>
+
+  vi:sw=4
+ 
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+ 
+       http://www.apache.org/licenses/LICENSE-2.0
+ 
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>net.sf.maven-autotools</groupId>
+    <artifactId>maven-autotools</artifactId>
+    <packaging>pom</packaging>
+    <name>maven-autotools</name>
+    <version>0.2-SNAPSHOT</version>
+    <url>http://maven-autotools.sourceforge.net/</url>
+    <prerequisites>
+        <maven>2.0.4</maven>
+    </prerequisites>
+    <issueManagement>
+        <system>Bugzilla</system>
+        <url>http://sourceforge.net/tracker/?group_id=184920</url>
+    </issueManagement>
+    <inceptionYear>2006</inceptionYear>
+    <mailingLists>
+        <mailingList>
+            <name>maven-autotools-devel</name>
+            <subscribe>maven-autotools-devel-subscribe@lists.sourceforge.net</subscribe>
+            <unsubscribe>maven-autotools-devel-unsubscribe@lists.sourceforge.net</unsubscribe>
+            <post>maven-autotools-devel@lists.sourceforge.net</post>
+            <archive>http://sourceforge.net/mailarchive/forum.php?forum=maven-autotools-devel</archive>
+        </mailingList>
+        <mailingList>
+            <name>maven-autotools-users</name>
+            <subscribe>maven-autotools-users-subscribe@lists.sourceforge.net</subscribe>
+            <unsubscribe>maven-autotools-users-unsubscribe@lists.sourceforge.net</unsubscribe>
+            <post>maven-autotools-users@lists.sourceforge.net</post>
+            <archive>http://sourceforge.net/mailarchive/forum.php?forum=maven-autotools-users</archive>
+        </mailingList>
+    </mailingLists>
+    <developers>
+        <developer>
+            <id>hjoest</id>
+            <name>Holger Joest</name>
+            <email>hjoest@users.sourceforge.net</email>
+            <url>www.joest.org</url>
+            <roles>
+                <role>Project Lead</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>GNU GENERAL PUBLIC LICENSE</name>
+            <url>http://www.gnu.org/licenses/gpl.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:svn:http://maven-autotools.svn.sourceforge.net/svnroot/maven-autotools/trunk</connection>
+        <developerConnection>scm:svn:https://maven-autotools.svn.sourceforge.net/svnroot/maven-autotools/trunk</developerConnection>
+        <url>http://svn.sourceforge.net/viewvc/maven-autotools/trunk</url>
+    </scm>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>1.0-beta-4</version>
+                <configuration>
+                    <goals>install</goals>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2-beta-1</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/assembly/bin.xml</descriptor>
+                    </descriptors>
+                </configuration>
+<!--
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>assembly</goal>
+                            <goal>directory</goal>
+                        </goals>
+                    </execution>
+                </executions>
+-->
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <minmemory>128m</minmemory>
+                    <maxmemory>512m</maxmemory>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <configuration>
+                    <check branchrate="80" linerate="70" haltonerror="false" totalbranchrate="80" totallinerate="70"/>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <reporting>
+        <plugins>
+<!--
+"Continuous Integration" report.
+"Dependencies" report.
+"Dependency Convergence" report.
+"Issue Tracking" report.
+"Project License" report.
+"Mailing Lists" report.
+"About" report.
+"Project Summary" report.
+"Source Repository" report.
+"Project Team" report.
+"Source Xref" report.
+-->
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+<!--
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                           <report>index</report>
+                           <report>summary</report>
+                           <report>dependencies</report>
+                           <report>dependency-convergence</report>
+                           <report>project-team</report>
+                           <report>cim</report>
+                           <report>mailing-list</report>
+                           <report>issue-tracking</report>
+                           <report>license</report>
+                           <report>scm</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+-->
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jxr-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <configuration>
+                    <configLocation>src/checkstyle/checkstyle.xml</configLocation>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </reporting>
+    <modules>
+        <module>maven-autotools-plugin</module>
+    </modules>
+</project>
+
