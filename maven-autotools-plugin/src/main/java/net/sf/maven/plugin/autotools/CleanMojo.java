@@ -92,7 +92,6 @@ extends AbstractMojo {
                 }
             }
         }
-        System.out.println("DELETE: " + file.getAbsolutePath());
         file.delete();
     }
 
