@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2007 Holger Joest <hjoest@users.sourceforge.net>
+ * Copyright (C) 2006-2009 Holger Joest <hjoest@users.sourceforge.net>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,20 +31,20 @@ import org.codehaus.plexus.archiver.manager.ArchiverManager;
  * Goal that unpacks the project dependencies from the repository to a defined
  * location.
  *
- * @goal unpack
- * @phase process-sources
+ * @goal unpackDependencies
+ * @phase generate-sources
  * @requiresDependencyResolution compile
  */
-public class UnpackMojo
+public class UnpackDependenciesMojo
 extends AbstractMojo {
 
     /**
-     * Directory containing the generated artifacts.
+     * The dependencies directory.
      *
-     * @parameter expression="${project.build.directory}"
+     * @parameter expression="${project.build.directory}/autotools/dependencies"
      * @required
      */
-    private File outputDirectory;
+    private File dependenciesDirectory;
 
     /**
      * To look up Archiver/UnArchiver implementations.
@@ -73,7 +73,8 @@ extends AbstractMojo {
     public void execute()
     throws MojoExecutionException {
         try {
-            String classifier = getClassifier();
+            Environment environment = Environment.getEnvironment();
+            String classifier = environment.getClassifier();
             Set<Artifact> artifacts = getProjectArtifacts();
             for (Artifact artifact : artifacts) {
                 if (project.getArtifactId().equals(artifact.getArtifactId())
@@ -93,9 +94,7 @@ extends AbstractMojo {
                             new File(archive.getParentFile(),
                                     attachedArchiveName);
                         if (attachedArchive.exists()) {
-                            File unpackDirectory =
-                                new File(outputDirectory, "make-dependencies");
-                            unpack(attachedArchive, unpackDirectory);
+                            unpack(attachedArchive, dependenciesDirectory);
                         }
                     }
                 }
@@ -114,23 +113,11 @@ extends AbstractMojo {
     private void unpack(File archive, File unpackDirectory)
     throws Exception {
         unpackDirectory.mkdirs();
-        UnArchiver unarchiver =
-            archiverManager.getUnArchiver("jar");
+        UnArchiver unarchiver = archiverManager.getUnArchiver("jar");
         unarchiver.setSourceFile(archive);
         unarchiver.setDestDirectory(unpackDirectory);
         unarchiver.setOverwrite(true);
         unarchiver.extract();
-    }
-
-
-    /**
-     * @return the attached artifact classifier
-     */
-    private String getClassifier() {
-        Environment env = Environment.getEnvironment();
-        return "native"
-        + "-" + env.getSystemArchitecture()
-        + "-" + env.getOperatingSystem();
     }
 
 

@@ -1,0 +1,4 @@
+sed -e "s/^AC_INIT.*/AC_INIT([a.out],[1.0])\\nAM_INIT_AUTOMAKE/" -e "s/^AC_OUTPUT/AC_CONFIG_FILES([Makefile])\\nAC_OUTPUT/" configure.scan > configure.ac
+echo "bin_PROGRAMS = ${autoscan.program}" > Makefile.am
+echo "${autoscan.program}_SOURCES = ${autoscan.sources}" >> Makefile.am
+touch NEWS README AUTHORS ChangeLog

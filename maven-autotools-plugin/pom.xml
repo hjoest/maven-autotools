@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (C) 2006-2007 Holger Joest <hjoest@users.sourceforge.net>
+  Copyright (C) 2006-2009 Holger Joest <hjoest@users.sourceforge.net>
 
   vi:sw=4
  
@@ -27,28 +27,27 @@
     <artifactId>maven-autotools-plugin</artifactId>
     <packaging>maven-plugin</packaging>
     <name>maven-autotools-plugin</name>
-    <version>0.2-SNAPSHOT</version>
-    <url>http://maven-autotools.sourceforge.net/maven-autotools-plugin</url>
+    <url>http://maven-autotools.sourceforge.net/site/${pom.artifactId}</url>
     <dependencies>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
-            <version>2.0.8</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-artifact</artifactId>
-            <version>2.0.8</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-project</artifactId>
-            <version>2.0.8</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-archiver</artifactId>
-            <version>2.0.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugin-testing</groupId>
+            <artifactId>maven-plugin-testing-harness</artifactId>
         </dependency>
     </dependencies>
 </project>

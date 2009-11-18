@@ -1,0 +1,13 @@
+prefix = @prefix@
+datadir = @datadir@
+bindir = @bindir@
+datarootdir = @datarootdir@
+
+all:	hello
+
+hello:	hello.o
+
+check:
+
+install:
+	mkdir -p $(bindir) && cp -f hello $(bindir)

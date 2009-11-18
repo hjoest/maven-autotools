@@ -1,0 +1,9 @@
+source(basedir + "/../../../src/it/verify-utils.bsh");
+
+String actual = execTarget("bar", "bar/target");
+String expected = "Hello World";
+if (!expected.equals(actual)) {
+    throw new Exception("Output assertion failed, expected = '"
+                        + expected + "', actual = '" + actual + "'");
+}
+

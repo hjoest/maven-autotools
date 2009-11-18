@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (C) 2006-2007 Holger Joest <hjoest@users.sourceforge.net>
+  Copyright (C) 2006-2009 Holger Joest <hjoest@users.sourceforge.net>
 
   vi:sw=4
  
@@ -22,16 +22,22 @@
     <artifactId>maven-autotools</artifactId>
     <packaging>pom</packaging>
     <name>maven-autotools</name>
+    <description>
+        The Maven2 Autotools Plugin runs GNU Autotools from a Maven2 build.
+    </description>
     <version>0.2-SNAPSHOT</version>
-    <url>http://maven-autotools.sourceforge.net/</url>
+    <url>http://maven-autotools.sourceforge.net/site</url>
+    <inceptionYear>2006</inceptionYear>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
     <prerequisites>
-        <maven>2.0.4</maven>
+        <maven>2.0.9</maven>
     </prerequisites>
     <issueManagement>
         <system>Bugzilla</system>
         <url>http://sourceforge.net/tracker/?group_id=201405</url>
     </issueManagement>
-    <inceptionYear>2006</inceptionYear>
     <mailingLists>
         <mailingList>
             <name>maven-autotools-devel</name>
@@ -72,12 +78,51 @@
         <developerConnection>scm:svn:https://maven-autotools.svn.sourceforge.net/svnroot/maven-autotools/trunk</developerConnection>
         <url>http://svn.sourceforge.net/viewvc/maven-autotools/trunk</url>
     </scm>
+    <distributionManagement>
+        <site>
+            <id>local</id>
+            <url>file://${user.dir}/target/site-all</url>
+        </site>
+    </distributionManagement>
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-scm-plugin</artifactId>
+                    <version>1.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>2.0.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>2.5</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>cobertura-maven-plugin</artifactId>
+                    <version>2.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>1.0-beta-1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-invoker-plugin</artifactId>
+                    <version>1.5</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-scm-plugin</artifactId>
-                <version>1.0</version>
                 <configuration>
                     <goals>install</goals>
                 </configuration>
@@ -99,9 +144,31 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-plugin-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>2.0.9</version>
+                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>1.5</version>
+                                </requireJavaVersion>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.0</version>
                 <configuration>
                     <check>
                         <!-- FIXME: set true -->
@@ -130,12 +197,70 @@
             </plugin>
         </plugins>
     </build>
+    <repositories>
+        <repository>
+            <id>joest</id>
+            <name>joest</name>
+            <url>http://repo.joest.org</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>joest</id>
+            <name>joest</name>
+            <url>http://repo.joest.org</url>
+        </pluginRepository>
+    </pluginRepositories>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-plugin-api</artifactId>
+                <version>2.0.9</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-artifact</artifactId>
+                <version>2.0.9</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-project</artifactId>
+                <version>2.0.9</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-archiver</artifactId>
+                <version>2.0.5</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.plugin-testing</groupId>
+                <artifactId>maven-plugin-testing-harness</artifactId>
+                <version>1.2</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.5</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.easymock</groupId>
+                <artifactId>easymock</artifactId>
+                <version>2.5.2</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.4</version>
-            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
         </dependency>
     </dependencies>
     <reporting>
@@ -143,6 +268,39 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <id>uml</id>
+                        <configuration>
+                            <doclet>gr.spinellis.umlgraph.doclet.UmlGraphDoc</doclet>
+                            <docletArtifact>
+                                <groupId>gr.spinellis</groupId>
+                                <artifactId>UmlGraph</artifactId>
+                                <version>4.6</version>
+                            </docletArtifact>
+                            <additionalparam>
+                                -inferrel -inferdep -quiet -hide java.*
+                                -collpackages java.util.* -qualify
+                                -postfixpackage -nodefontsize 9
+                                -nodefontpackagesize 7 -views
+                                -link http://java.sun.com/javase/6/docs/api
+                            </additionalparam>
+                            <show>private</show>
+                        </configuration>
+                        <reports>
+                            <report>javadoc</report>
+                        </reports>
+                    </reportSet>
+                    <reportSet>
+                        <id>html</id>
+                        <configuration>
+                            <show>private</show>
+                        </configuration>
+                        <reports>
+                            <report>javadoc</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -167,6 +325,7 @@
     </reporting>
     <modules>
         <module>maven-autotools-plugin</module>
+        <module>maven-autotools-it</module>
     </modules>
 </project>
 

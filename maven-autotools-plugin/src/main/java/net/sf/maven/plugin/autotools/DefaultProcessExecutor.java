@@ -18,14 +18,18 @@ package net.sf.maven.plugin.autotools;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 
 /**
  * Running child processes.
  */
-public interface ProcessExecutor {
+public class DefaultProcessExecutor
+implements ProcessExecutor {
 
     /**
      * Executes the specified command in a child process passing stdout
@@ -38,11 +42,13 @@ public interface ProcessExecutor {
      *                     terminates with a non-zero code
      * @throws InterruptedException if the child process is interrupted
      */
-    void execProcess(
+    public void execProcess(
             String[] command,
             Map<String, String> env,
             File workingDirectory)
-    throws IOException, InterruptedException;
+    throws IOException, InterruptedException {
+        execProcess(command, env, workingDirectory, null, null);
+    }
 
 
     /**
@@ -58,13 +64,54 @@ public interface ProcessExecutor {
      *                     terminates with a non-zero code
      * @throws InterruptedException if the child process is interrupted
      */
-    void execProcess(
+    public void execProcess(
             String[] command,
             Map<String, String> env,
             File workingDirectory,
             OutputStream stdoutResultStream,
             OutputStream stderrResultStream)
-    throws IOException, InterruptedException;
+    throws IOException, InterruptedException {
+        Runtime runtime = Runtime.getRuntime();
+        Process process = runtime.exec(command, envp(env), workingDirectory);
+        InputStream stdout = process.getInputStream();
+        InputStream stderr = process.getErrorStream();
+        if (stdoutResultStream == null) {
+            stdoutResultStream = System.out;
+        }
+        if (stderrResultStream == null) {
+            stderrResultStream = System.err;
+        }
+        StreamPump outStreamPump = new StreamPump(stdout, stdoutResultStream);
+        StreamPump errStreamPump = new StreamPump(stderr, stderrResultStream);
+        outStreamPump.start();
+        errStreamPump.start();
+        int status = process.waitFor();
+        if (status != 0) {
+            throw new IOException(
+                    "Child process \"" + command[0]
+                    + "\" terminated with code " + status);
+        }
+    }
+
+
+    /**
+     * Returns the given environment variables as a string array
+     * that may be passed to {@link Runtime#exec(String, String[])}.
+     *
+     * @param env the environment variables
+     * @return a string array
+     */
+    private String[] envp(Map<String, String> env) {
+        if (env == null) {
+            return null;
+        }
+        List<String> result = new ArrayList<String>(env.size());
+        for (String key : env.keySet()) {
+            String value = env.get(key);
+            result.add(key + "=" + value);
+        }
+        return result.toArray(new String[result.size()]);
+    }
 
 }
 

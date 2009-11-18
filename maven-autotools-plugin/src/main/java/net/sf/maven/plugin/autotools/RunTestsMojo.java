@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2007 Holger Joest <hjoest@users.sourceforge.net>
+ * Copyright (C) 2006-2009 Holger Joest <hjoest@users.sourceforge.net>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,19 +23,24 @@ import org.apache.maven.plugin.MojoExecutionException;
 
 
 /**
- * @goal check
- * @phase verify
+ * @goal test
+ * @phase test
  * @description run 'make check'
  */
-public final class MakeCheckMojo
+public final class RunTestsMojo
 extends AbstractMojo {
 
     /**
      * The working directory.
      *
-     * @parameter expression="${project.build.directory}/make-work"
+     * @parameter expression="${project.build.directory}/autotools/work"
      */
     private File workingDirectory;
+
+    /**
+     * Used to run child processes.
+     */
+    private ProcessExecutor exec = new DefaultProcessExecutor();
 
 
     /**
@@ -50,10 +55,7 @@ extends AbstractMojo {
                     "make",
                     "check"
             };
-            ProcessExecutor pe = new ProcessExecutor();
-            pe.execProcess(makeCheckCommand, null, workingDirectory);
-        } catch (MojoExecutionException ex) {
-            throw ex;
+            exec.execProcess(makeCheckCommand, null, workingDirectory);
         } catch (Exception ex) {
             throw new MojoExecutionException("Failed to run \"make\"", ex);
         }

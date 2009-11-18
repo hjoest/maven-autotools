@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2007 Holger Joest <hjoest@users.sourceforge.net>
+ * Copyright (C) 2006-2009 Holger Joest <hjoest@users.sourceforge.net>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,17 @@ public final class Environment {
            arch = "i386";
         }
         return arch;
+    }
+
+
+    /**
+     * @return the attached artifact classifier
+     */
+    public String getClassifier() {
+        Environment env = Environment.getEnvironment();
+        return "native"
+            + "-" + env.getSystemArchitecture()
+            + "-" + env.getOperatingSystem();
     }
 
 

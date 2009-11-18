@@ -1,0 +1,2 @@
+/* Define to 1 if you have the <stdio.h> header file. */
+#undef HAVE_STDIO_H

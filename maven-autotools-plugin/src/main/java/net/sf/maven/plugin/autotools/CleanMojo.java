@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2007 Holger Joest <hjoest@users.sourceforge.net>
+ * Copyright (C) 2006-2009 Holger Joest <hjoest@users.sourceforge.net>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,33 +24,19 @@ import org.apache.maven.plugin.MojoExecutionException;
 
 
 /**
- * @goal clean
- * @phase clean
- * @description clean target directory
+ * @goal pre-clean
+ * @phase pre-clean
+ * @description delete all symlinks in the target directory
  */
 public final class CleanMojo
 extends AbstractMojo {
 
     /**
-     * The dependencies directory.
+     * The project's target directory.
      *
-     * @parameter expression="${project.build.directory}/make-dependencies"
+     * @parameter expression="${project.build.directory}"
      */
-    private File dependenciesDirectory;
-
-    /**
-     * The working directory.
-     *
-     * @parameter expression="${project.build.directory}/make-work"
-     */
-    private File workingDirectory;
-
-    /**
-     * The install directory.
-     *
-     * @parameter expression="${project.build.directory}/make-install"
-     */
-    private File installDirectory;
+    private File targetDirectory;
 
 
     /**
@@ -60,39 +46,10 @@ extends AbstractMojo {
     public void execute()
     throws MojoExecutionException {
         try {
-            delete(dependenciesDirectory);
-            delete(workingDirectory);
-            delete(installDirectory);
+            SymlinkUtils.deleteSymlinks(targetDirectory);
         } catch (IOException ex) {
-            throw new MojoExecutionException("Failed to delete files", ex);
+            throw new MojoExecutionException("Failed to delete symlinks", ex);
         }
-    }
-
-
-    /**
-     * Deletes the given file or directory recursively.
-     *
-     * @param file the file or directory to delete
-     * @throws IOException if an I/O error occurs
-     */
-    private void delete(File file)
-    throws IOException {
-        if (file == null) {
-            return;
-        }
-        File[] children = file.listFiles();
-        if (children != null) {
-            File fileCanonical = file.getCanonicalFile();
-            for (int k = 0; k < children.length; ++k) {
-                File child = children[k];
-                File childCanonical = child.getCanonicalFile();
-                if (childCanonical.getParentFile().equals(fileCanonical)
-                        || !childCanonical.isDirectory()) {
-                    delete(child);
-                }
-            }
-        }
-        file.delete();
     }
 
 }
