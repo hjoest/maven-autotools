@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype-catalog>
+    <archetypes>
+        <archetype>
+            <groupId>net.sf.maven-autotools</groupId>
+            <artifactId>maven-autotools-archetype</artifactId>
+            <version>0.2-SNAPSHOT</version>
+            <description>Archetype for creating an Autotools project</description>
+            <repository>http://joest.org/repo</repository>
+        </archetype>
+    </archetypes>
+</archetype-catalog>
