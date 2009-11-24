@@ -67,9 +67,6 @@ public class SymlinkUtils {
 
     public static File resolveSymlink(File link)
     throws IOException {
-        if (link.exists()) {
-            return link.getCanonicalFile();
-        }
         File linkDirectory = link.getParentFile();
         if (!linkDirectory.exists()) {
             throw new IOException("Symbolic link not found " + link);
@@ -90,9 +87,9 @@ public class SymlinkUtils {
             ByteArrayOutputStream stdoutCapture = new ByteArrayOutputStream();
             try {
                 Map<String, String> env = new HashMap<String, String>();
-                String encoding = "C.UTF-8";
-                if ("windows".equals(
-                        Environment.getEnvironment().getOperatingSystem())) {
+                String encoding = "UTF-8";
+                String os = Environment.getEnvironment().getOperatingSystem();
+                if ("windows".equals(os)) {
                     encoding = "CP1252";
                 }
                 env.put("LC_CTYPE", "C." + encoding);

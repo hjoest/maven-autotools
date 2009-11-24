@@ -1,13 +1,13 @@
-prefix = @prefix@
-datadir = @datadir@
 bindir = @bindir@
-datarootdir = @datarootdir@
+CC = @CC@
+EXEEXT = @EXEEXT@
 
-all:	hello
+all:	hello$(EXEEXT)
 
-hello:	hello.o
+hello$(EXEEXT):	hello.o
+	$(CC) hello.o -o hello$(EXEEXT)
 
 check:
 
 install:
-	mkdir -p $(bindir) && cp -f hello $(bindir)
+	mkdir -p $(bindir) && cp -f hello$(EXEEXT) $(bindir)

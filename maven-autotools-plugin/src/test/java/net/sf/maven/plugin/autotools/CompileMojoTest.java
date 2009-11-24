@@ -28,7 +28,6 @@ import java.util.Map;
 
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.plugin.testing.SilentLog;
-import org.codehaus.plexus.util.FileUtils;
 
 
 public class CompileMojoTest
@@ -65,11 +64,14 @@ extends AbstractMojoTestCase {
                 { "sh", "-c",
                     "../configure/configure"
                     + " --bindir=\""
-                    + new File(installDirectory, "bin/" + host) + "\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "bin/" + host)) + "\""
                     + " --libdir=\""
-                    + new File(installDirectory, "lib/" + host) + "\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "lib/" + host)) + "\""
                     + " --includedir=\""
-                    + new File(installDirectory, "include") + "\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "include")) + "\""
                 },
                 { "sh", "-c", "make" },
                 { "sh", "-c", "make install" }
@@ -99,11 +101,14 @@ extends AbstractMojoTestCase {
                 { "sh", "-c",
                     "../configure/configure"
                     + " --bindir=\""
-                    + new File(installDirectory, "bin/" + host) + "\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "bin/" + host)) + "\""
                     + " --libdir=\""
-                    + new File(installDirectory, "lib/" + host) + "\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "lib/" + host)) + "\""
                     + " --includedir=\""
-                    + new File(installDirectory, "include") + "\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "include")) + "\""
                 },
                 { "sh", "-c", "make" },
                 { "sh", "-c", "make install" }

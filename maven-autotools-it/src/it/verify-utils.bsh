@@ -5,8 +5,8 @@ import java.io.InputStream;
 
 
 String execTarget(String binname, String targetPath) {
-    String arch = "i386";
-    String os = "linux";
+    String arch = getSystemArchitecture();
+    String os = getOperatingSystem();
 
     String binext = "windows".equals(os) ? ".exe" : "";
 
@@ -36,5 +36,25 @@ String execTarget(String binname, String targetPath) {
 
 String execTarget(String binname) {
     return execTarget(binname, "target");
+}
+
+
+String getOperatingSystem() {
+    String os = System.getProperty("os.name").toLowerCase();
+    if (os.startsWith("windows")) {
+        os = "windows";
+    } else if (os.startsWith("netware")) {
+        os = "netware";
+    }
+    return os.replaceAll("[ /]", "");
+}
+
+
+String getSystemArchitecture() {
+    String arch = System.getProperty("os.arch").toLowerCase();
+    if (arch.equals("x86")) {
+       arch = "i386";
+    }
+    return arch;
 }
 

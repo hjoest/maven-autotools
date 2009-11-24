@@ -45,7 +45,7 @@ public final class Environment {
         } else if (os.startsWith("netware")) {
             os = "netware";
         }
-        os = os.replace(" ", "").replace("/", "");
+        os = os.replaceAll("[ /]", "");
         return os;
     }
 
