@@ -2,6 +2,18 @@
 <component-set>
     <components>
         <component>
+            <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
+            <role-hint>jar-with-autotools</role-hint>
+            <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
+            <configuration>
+                <extension>jar</extension>
+                <type>jar-with-autotools</type>
+                <packaging>jar-with-autotools</packaging>
+                <language>java</language>
+                <addedToClasspath>true</addedToClasspath>
+            </configuration>
+        </component>
+        <component>
             <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
             <role-hint>jar-with-autotools</role-hint>
             <implementation>
