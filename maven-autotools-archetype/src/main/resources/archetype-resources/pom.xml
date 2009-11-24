@@ -5,6 +5,9 @@
   <artifactId>${artifactId}</artifactId>
   <packaging>jar-with-autotools</packaging>
   <version>${version}</version>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
   <build>
     <plugins>
       <plugin>
@@ -14,6 +17,13 @@
       </plugin>
     </plugins>
   </build>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>joest</id>
+      <name>joest</name>
+      <url>http://repo.joest.org</url>
+    </pluginRepository>
+  </pluginRepositories>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
