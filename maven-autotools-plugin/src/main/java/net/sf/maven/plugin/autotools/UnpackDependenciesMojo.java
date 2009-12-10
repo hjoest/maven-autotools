@@ -65,6 +65,12 @@ extends AbstractMojo {
      */
     private MavenProject project;
 
+    /**
+     * Used to avoid running this mojo multiple times with exactly the
+     * same configuration.
+     */
+    private RepeatedExecutions repeated = new RepeatedExecutions();
+
 
     /**
      * {@inheritDoc}
@@ -72,6 +78,11 @@ extends AbstractMojo {
      */
     public void execute()
     throws MojoExecutionException {
+        if (repeated.alreadyRun(getClass().getName(),
+                                dependenciesDirectory)) {
+            getLog().info("Skipping repeated execution");
+            return;
+        }
         try {
             Environment environment = Environment.getEnvironment();
             String classifier = environment.getClassifier();

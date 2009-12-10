@@ -100,6 +100,12 @@ extends AbstractMojo {
      */
     private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
 
+    /**
+     * Used to avoid running this mojo multiple times with exactly the
+     * same configuration.
+     */
+    private RepeatedExecutions repeated = new RepeatedExecutions();
+
 
     /**
      * {@inheritDoc}
@@ -107,6 +113,12 @@ extends AbstractMojo {
      */
     public void execute()
     throws MojoExecutionException {
+        if (repeated.alreadyRun(getClass().getName(),
+                                installDirectory,
+                                outputDirectory)) {
+            getLog().info("Skipping repeated execution");
+            return;
+        }
         File jarFile = createArchive();
         Environment environment = Environment.getEnvironment();
         String classifier = environment.getClassifier();

@@ -42,6 +42,12 @@ extends AbstractMojo {
      */
     private ProcessExecutor exec = new DefaultProcessExecutor();
 
+    /**
+     * Used to avoid running this mojo multiple times with exactly the
+     * same configuration.
+     */
+    private RepeatedExecutions repeated = new RepeatedExecutions();
+
 
     /**
      * {@inheritDoc}
@@ -49,6 +55,11 @@ extends AbstractMojo {
      */
     public void execute()
     throws MojoExecutionException {
+        if (repeated.alreadyRun(getClass().getName(),
+                                workingDirectory)) {
+            getLog().info("Skipping repeated execution");
+            return;
+        }
         try {
             workingDirectory.mkdirs();
             String[] makeCheckCommand = {
