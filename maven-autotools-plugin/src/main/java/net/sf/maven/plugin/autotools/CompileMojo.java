@@ -134,14 +134,15 @@ extends AbstractMojo {
             // No need to run configure since there is an up-to-date makefile.
             return;
         }
+        String configurePath = "configure";
         try {
             autoconf();
             File configureScript =
-                new File(configureDirectory, "configure");
+                new File(configureDirectory, configurePath);
             if (!configureScript.canExecute()) {
                 configureScript.setExecutable(true);
             }
-            String configurePath =
+            configurePath =
                 FileUtils.calculateRelativePath(workingDirectory,
                                                 configureScript);
             File binDirectory = new File(installDirectory, "bin");
@@ -170,7 +171,11 @@ extends AbstractMojo {
                     makeConfigureEnvironment(),
                     workingDirectory);
         } catch (Exception ex) {
-            throw new MojoExecutionException("Failed to run \"configure\"", ex);
+            throw new MojoExecutionException("Failed to run '"
+                                             + configurePath + "'"
+                                             + " in directory '"
+                                             + workingDirectory + "'",
+                                             ex);
         }
     }
 
@@ -341,11 +346,15 @@ extends AbstractMojo {
             return;
         }
         for (File file : files) {
-            if (!file.isFile()) {
-                continue;
+            if (file.isDirectory()) {
+                File childDestinationDirectory =
+                      new File(destinationDirectory, file.getName());
+                childDestinationDirectory.mkdir();
+                makeSymlinks(file, childDestinationDirectory);
+            } else if (file.isFile()) {
+                File link = new File(destinationDirectory, file.getName());
+                SymlinkUtils.createSymlink(link, file, true);
             }
-            File link = new File(destinationDirectory, file.getName());
-            SymlinkUtils.createSymlink(link, file);
         }
     }
 
