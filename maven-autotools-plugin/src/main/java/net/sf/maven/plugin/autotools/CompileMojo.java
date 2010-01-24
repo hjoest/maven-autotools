@@ -87,6 +87,13 @@ extends AbstractMojo {
     private File nativeMainDirectory;
 
     /**
+     * Set 'true' if you want verbose output.
+     *
+     * @parameter
+     */
+    private boolean verbose;
+
+    /**
      * Used to run child processes.
      */
     private ProcessExecutor exec = new DefaultProcessExecutor();
@@ -168,6 +175,7 @@ extends AbstractMojo {
             File includeDirectory = new File(installDirectory, "include");
             String configure =
                 configurePath
+                + (verbose ? "" : " --silent")
                 + " --bindir=\""
                 + FileUtils.fixAbsolutePathForUnixShell(binDirectory) + "\""
                 + " --libdir=\""
@@ -178,7 +186,7 @@ extends AbstractMojo {
             String[] configureCommand = {
                     "sh", "-c", configure
             };
-            if (getLog().isInfoEnabled()) {
+            if (verbose && getLog().isInfoEnabled()) {
                 getLog().info("cd '" + workingDirectory + "'");
                 getLog().info(Arrays.toString(configureCommand));
             }
@@ -202,11 +210,15 @@ extends AbstractMojo {
             String[] makeCommand = {
                     "sh", "-c", "make"
             };
-            exec.execProcess(makeCommand, null, workingDirectory);
+            exec.execProcess(makeCommand,
+                             null,
+                             workingDirectory);
             String[] makeInstallCommand = {
                     "sh", "-c", "make install"
             };
-            exec.execProcess(makeInstallCommand, null, workingDirectory);
+            exec.execProcess(makeInstallCommand,
+                             null,
+                             workingDirectory);
         } catch (Exception ex) {
             throw new MojoExecutionException("Failed to run \"make\"", ex);
         }
@@ -229,24 +241,25 @@ extends AbstractMojo {
                   && !FileUtils.fileExists(configureDirectory, "Makefile.in")) {
                 commands.add("aclocal");
                 commands.add("autoheader");
-                commands.add("libtoolize -c -f");
-                commands.add("automake -c -f -a");
+                commands.add("libtoolize -c -f" + (verbose ? "" : " --quiet"));
+                commands.add("automake -c -f -a" + (verbose ? "" : " -W none"));
                 createEmptyIfDoesNotExist(configureDirectory, "NEWS");
                 createEmptyIfDoesNotExist(configureDirectory, "README");
                 createEmptyIfDoesNotExist(configureDirectory, "AUTHORS");
                 createEmptyIfDoesNotExist(configureDirectory, "ChangeLog");
+                createEmptyIfDoesNotExist(configureDirectory, "COPYING");
             }
             if (!FileUtils.fileExists(configureDirectory, "configure")) {
                 commands.add("autoconf");
             }
-            if (getLog().isInfoEnabled()) {
+            if (verbose && getLog().isInfoEnabled()) {
                 getLog().info("cd '" + configureDirectory + "'");
             }
             for (String command : commands) {
                 String[] shellCommand = {
                         "sh", "-c", command
                 };
-                if (getLog().isInfoEnabled()) {
+                if (verbose && getLog().isInfoEnabled()) {
                     getLog().info(Arrays.toString(shellCommand));
                 }
                 exec.execProcess(

@@ -87,6 +87,7 @@ extends AbstractMojo {
             Environment environment = Environment.getEnvironment();
             String classifier = environment.getClassifier();
             Set<Artifact> artifacts = getProjectArtifacts();
+            boolean anyNativeDependencies = false;
             for (Artifact artifact : artifacts) {
                 if (project.getArtifactId().equals(artifact.getArtifactId())
                         && project.getGroupId().equals(artifact.getGroupId())) {
@@ -105,10 +106,14 @@ extends AbstractMojo {
                             new File(archive.getParentFile(),
                                     attachedArchiveName);
                         if (attachedArchive.exists()) {
+                            anyNativeDependencies = true;
                             unpack(attachedArchive, dependenciesDirectory);
                         }
                     }
                 }
+            }
+            if (!anyNativeDependencies) {
+                getLog().info("No native dependencies");
             }
         } catch (Exception ex) {
             throw new MojoExecutionException("Error unpacking archive", ex);

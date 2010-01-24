@@ -5,3 +5,4 @@ include_HEADERS = foo.h
 INCLUDES = -I@srcdir@
 AM_CFLAGS = -Wall -g
 AM_LDFLAGS = -g
+AM_LIBTOOLFLAGS = --silent

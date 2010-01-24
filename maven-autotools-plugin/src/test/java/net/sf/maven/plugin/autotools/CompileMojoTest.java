@@ -63,6 +63,7 @@ extends AbstractMojoTestCase {
                 { "sh", "-c", "autoconf" },
                 { "sh", "-c",
                     "../configure/configure"
+                    + " --silent"
                     + " --bindir=\""
                     + FileUtils.fixAbsolutePathForUnixShell(
                           new File(installDirectory, "bin/" + host)) + "\""
@@ -95,11 +96,12 @@ extends AbstractMojoTestCase {
         String[][] commands = {
                 { "sh", "-c", "aclocal" },
                 { "sh", "-c", "autoheader" },
-                { "sh", "-c", "libtoolize -c -f" },
-                { "sh", "-c", "automake -c -f -a" },
+                { "sh", "-c", "libtoolize -c -f --quiet" },
+                { "sh", "-c", "automake -c -f -a -W none" },
                 { "sh", "-c", "autoconf" },
                 { "sh", "-c",
                     "../configure/configure"
+                    + " --silent"
                     + " --bindir=\""
                     + FileUtils.fixAbsolutePathForUnixShell(
                           new File(installDirectory, "bin/" + host)) + "\""

@@ -66,7 +66,9 @@ extends AbstractMojo {
                     "make",
                     "check"
             };
-            exec.execProcess(makeCheckCommand, null, workingDirectory);
+            exec.execProcess(makeCheckCommand,
+                             null,
+                             workingDirectory);
         } catch (Exception ex) {
             throw new MojoExecutionException("Failed to run \"make\"", ex);
         }

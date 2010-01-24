@@ -85,6 +85,7 @@ public class SymlinkUtils {
         ProcessExecutor pe = new DefaultProcessExecutor();
         try {
             ByteArrayOutputStream stdoutCapture = new ByteArrayOutputStream();
+            pe.setStdout(stdoutCapture);
             try {
                 Map<String, String> env = new HashMap<String, String>();
                 String encoding = "UTF-8";
@@ -96,9 +97,7 @@ public class SymlinkUtils {
                 pe.execProcess(
                         command,
                         env,
-                        linkDirectory,
-                        stdoutCapture,
-                        null);
+                        linkDirectory);
                 stdoutCapture.flush();
                 String resolvedPath = stdoutCapture.toString(encoding).trim();
                 if (resolvedPath.startsWith("/")) {

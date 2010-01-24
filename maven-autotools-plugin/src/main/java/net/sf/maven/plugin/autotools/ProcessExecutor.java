@@ -28,6 +28,22 @@ import java.util.Map;
 public interface ProcessExecutor {
 
     /**
+     * Set the standard output stream.
+     *
+     * @param stdout the standard output stream
+     */
+    void setStdout(OutputStream stdout);
+
+
+    /**
+     * Set the standard error stream.
+     *
+     * @param stdout the standard error stream
+     */
+    void setStderr(OutputStream stderr);
+
+
+    /**
      * Executes the specified command in a child process passing stdout
      * and stderr to System.out and System.err respectively.
      *
@@ -42,28 +58,6 @@ public interface ProcessExecutor {
             String[] command,
             Map<String, String> env,
             File workingDirectory)
-    throws IOException, InterruptedException;
-
-
-    /**
-     * Executes the specified command in a child process passing stdout
-     * and stderr to the specified output streams.
-     *
-     * @param command the command as a string array
-     * @param env the environment variables
-     * @param workingDirectory the working directory (getcwd)
-     * @param stdoutResultStream an output stream to capture stdout
-     * @param stderrResultStream an output stream to capture stderr
-     * @throws IOException if an I/O error occurs or if the child process
-     *                     terminates with a non-zero code
-     * @throws InterruptedException if the child process is interrupted
-     */
-    void execProcess(
-            String[] command,
-            Map<String, String> env,
-            File workingDirectory,
-            OutputStream stdoutResultStream,
-            OutputStream stderrResultStream)
     throws IOException, InterruptedException;
 
 }

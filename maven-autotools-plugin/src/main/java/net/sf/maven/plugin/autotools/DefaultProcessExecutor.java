@@ -31,9 +31,34 @@ import java.util.Map;
 public class DefaultProcessExecutor
 implements ProcessExecutor {
 
+    private OutputStream stdout;
+
+    private OutputStream stderr;
+
+
+    /**
+     * Set the standard output stream.
+     *
+     * @param stdout the standard output stream
+     */
+    public void setStdout(OutputStream stdout) {
+        this.stdout = stdout;
+    }
+
+
+    /**
+     * Set the standard error stream.
+     *
+     * @param stdout the standard error stream
+     */
+    public void setStderr(OutputStream stderr) {
+        this.stderr = stderr;
+    }
+
+
     /**
      * Executes the specified command in a child process passing stdout
-     * and stderr to System.out and System.err respectively.
+     * and stderr to the specified output streams.
      *
      * @param command the command as a string array
      * @param env the environment variables
@@ -47,42 +72,22 @@ implements ProcessExecutor {
             Map<String, String> env,
             File workingDirectory)
     throws IOException, InterruptedException {
-        execProcess(command, env, workingDirectory, null, null);
-    }
-
-
-    /**
-     * Executes the specified command in a child process passing stdout
-     * and stderr to the specified output streams.
-     *
-     * @param command the command as a string array
-     * @param env the environment variables
-     * @param workingDirectory the working directory (getcwd)
-     * @param stdoutResultStream an output stream to capture stdout
-     * @param stderrResultStream an output stream to capture stderr
-     * @throws IOException if an I/O error occurs or if the child process
-     *                     terminates with a non-zero code
-     * @throws InterruptedException if the child process is interrupted
-     */
-    public void execProcess(
-            String[] command,
-            Map<String, String> env,
-            File workingDirectory,
-            OutputStream stdoutResultStream,
-            OutputStream stderrResultStream)
-    throws IOException, InterruptedException {
         Runtime runtime = Runtime.getRuntime();
         Process process = runtime.exec(command, envp(env), workingDirectory);
-        InputStream stdout = process.getInputStream();
-        InputStream stderr = process.getErrorStream();
+        InputStream stdoutInput = process.getInputStream();
+        InputStream stderrInput = process.getErrorStream();
+        OutputStream stdoutResultStream = stdout;
+        OutputStream stderrResultStream = stderr;
         if (stdoutResultStream == null) {
             stdoutResultStream = System.out;
         }
         if (stderrResultStream == null) {
             stderrResultStream = System.err;
         }
-        StreamPump outStreamPump = new StreamPump(stdout, stdoutResultStream);
-        StreamPump errStreamPump = new StreamPump(stderr, stderrResultStream);
+        StreamPump outStreamPump =
+            new StreamPump(stdoutInput, stdoutResultStream);
+        StreamPump errStreamPump =
+            new StreamPump(stderrInput, stderrResultStream);
         outStreamPump.start();
         errStreamPump.start();
         int status = process.waitFor();
