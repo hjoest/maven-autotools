@@ -69,7 +69,7 @@ AC_DEFUN([MVNAT_JAVA_JDK],
     ac_tmp_cppflags="$CPPFLAGS"
     ac_jdk_os=`echo $build_os | sed 's,[-0-9].*,,' | sed 's,x-gnu,x,' | sed 's,cygwin,win32,'`
     if test x$ac_jdk_os = xwin32; then
-        ac_jdk_include=`cygpath -m "$JDK_HOME"`/include
+        ac_jdk_include=`cygpath -u "$JDK_HOME"`/include
     else
         ac_jdk_include=$JDK_HOME/include
     fi
