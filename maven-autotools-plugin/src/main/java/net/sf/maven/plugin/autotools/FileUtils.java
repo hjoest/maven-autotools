@@ -55,6 +55,9 @@ extends org.codehaus.plexus.util.FileUtils {
             }
             ++p;
         }
+        if (p == basePath.length()) {
+            bp = p;
+        }
         if (bp == 0 || bp > targetPath.length()) {
             String os = Environment.getEnvironment().getOperatingSystem();
             if ("windows".equals(os)) {
@@ -103,5 +106,6 @@ extends org.codehaus.plexus.util.FileUtils {
         }
         return path;
     }
+
 }
 
