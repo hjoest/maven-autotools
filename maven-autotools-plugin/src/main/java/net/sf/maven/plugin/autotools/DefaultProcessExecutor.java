@@ -91,6 +91,16 @@ implements ProcessExecutor {
                     "Child process \"" + command[0]
                     + "\" terminated with code " + status);
         }
+        try {
+            outStreamPump.stop();
+        } finally {
+            outStreamPump.waitFor();
+        }
+        try {
+            errStreamPump.stop();
+        } finally {
+            errStreamPump.waitFor();
+        }
     }
 
 
