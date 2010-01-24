@@ -249,6 +249,16 @@
                 <version>2.0.5</version>
             </dependency>
             <dependency>
+                <groupId>asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>3.2</version>
+            </dependency>
+            <dependency>
+                <groupId>asm</groupId>
+                <artifactId>asm-commons</artifactId>
+                <version>3.2</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.maven.plugin-testing</groupId>
                 <artifactId>maven-plugin-testing-harness</artifactId>
                 <version>1.2</version>

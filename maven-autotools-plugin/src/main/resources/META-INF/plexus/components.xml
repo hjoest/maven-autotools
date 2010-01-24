@@ -29,6 +29,7 @@
                     </process-resources>
                     <compile>
                         org.apache.maven.plugins:maven-compiler-plugin:compile,
+                        net.sf.maven-autotools:maven-autotools-plugin:javah,
                         net.sf.maven-autotools:maven-autotools-plugin:compile
                     </compile>
                     <process-test-resources>
