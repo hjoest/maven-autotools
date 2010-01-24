@@ -28,7 +28,7 @@ public class App
 
     private static void loadNativeLibrary() {
         File nativeLibrary =
-              new File("target/autotools/install/lib/i386/linux/libhello.so");
+              new File("target/autotools/install/lib/i386/linux/lib${artifactId}.so");
         System.load(nativeLibrary.getAbsolutePath());
     }
 

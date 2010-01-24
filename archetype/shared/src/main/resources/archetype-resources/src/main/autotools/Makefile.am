@@ -1,7 +1,7 @@
-lib_LTLIBRARIES = libhello.la
-libhello_la_SOURCES = hello.c
-libhello_la_CFLAGS = $(AM_CFLAGS)
-libhello_la_LDFLAGS = -release "${version}" -no-undefined
+lib_LTLIBRARIES = lib${artifactId}.la
+lib${artifactId}_la_SOURCES = hello.c
+lib${artifactId}_la_CFLAGS = $(AM_CFLAGS)
+lib${artifactId}_la_LDFLAGS = -release "${version}" -no-undefined
 
 AM_CFLAGS = -Wall -g
 AM_LDFLAGS = -g
