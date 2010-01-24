@@ -18,8 +18,8 @@ package net.sf.maven.plugin.autotools;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
@@ -32,8 +32,8 @@ import java.util.Random;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.InterpolationFilterReader;
 import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.InterpolationFilterReader;
 
 
 /**
@@ -121,6 +121,7 @@ extends AbstractMojo {
             getLog().info("Skipping repeated execution");
             return;
         }
+        initLogging();
         prepareBuild();
         configure();
         make();
@@ -138,8 +139,8 @@ extends AbstractMojo {
             if (!FileUtils.fileExists(configureDirectory, "Makefile.am")) {
                 // If not produced by automake, it is highly probable that the
                 // make script can not deal with source files in a neighboring
-                // directory.  To play it safe, we link the the source files
-                // into the working directory as well.
+                // directory.  To play it safe, we link the source files into
+                // the working directory as well.
                 makeSymlinks(nativeMainDirectory, workingDirectory);
             }
         } catch (IOException ex) {
@@ -280,7 +281,6 @@ extends AbstractMojo {
         int rnd = Math.abs(new Random().nextInt());
         String temporaryScriptName = "." + scriptName + "-" + rnd;
         File script = new File(configureDirectory, temporaryScriptName);
-        String encoding = "UTF-8";
         Map<String, String> variables = makeVariables();
         Reader reader =
                   new InterpolationFilterReader(
@@ -394,6 +394,13 @@ extends AbstractMojo {
         if (!file.exists()) {
             new FileOutputStream(file).close();
         }
+    }
+
+
+    private void initLogging() {
+        StreamLogAdapter sla = new StreamLogAdapter(getLog());
+        exec.setStdout(sla.getStdout());
+        exec.setStderr(sla.getStderr());
     }
 
 }

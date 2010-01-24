@@ -20,10 +20,12 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.aryEq;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.util.Map;
 
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
@@ -144,6 +146,8 @@ extends AbstractMojoTestCase {
     @SuppressWarnings("unchecked")
     private void setupExpectations(String name, String[][] commands)
     throws Exception {
+        exec.setStdout(isA(OutputStream.class));
+        exec.setStderr(isA(OutputStream.class));
         File configureDirectory =
             getTestFile("target/test-harness/" + name + "/configure");
         File workingDirectory =

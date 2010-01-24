@@ -60,6 +60,7 @@ extends AbstractMojo {
             getLog().info("Skipping repeated execution");
             return;
         }
+        initLogging();
         try {
             workingDirectory.mkdirs();
             String[] makeCheckCommand = {
@@ -72,6 +73,13 @@ extends AbstractMojo {
         } catch (Exception ex) {
             throw new MojoExecutionException("Failed to run \"make\"", ex);
         }
+    }
+
+
+    private void initLogging() {
+        StreamLogAdapter sla = new StreamLogAdapter(getLog());
+        exec.setStdout(sla.getStdout());
+        exec.setStderr(sla.getStderr());
     }
 
 }

@@ -104,7 +104,7 @@ extends AbstractMojo {
                                     + "-" + classifier + ".jar";
                         File attachedArchive =
                             new File(archive.getParentFile(),
-                                    attachedArchiveName);
+                                     attachedArchiveName);
                         if (attachedArchive.exists()) {
                             anyNativeDependencies = true;
                             unpack(attachedArchive, dependenciesDirectory);
