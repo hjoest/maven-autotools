@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.61)
-AC_INIT([hello],[1.0])
+AC_INIT([${artifactId}],[${version}])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([hello.c])
 AC_CONFIG_HEADERS([config.h])

@@ -10,9 +10,6 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_PROG_CC
 AM_PROG_CC_C_O
 
-# Check for Cygwin specifics
-MVNAT_CYGWIN_FLAGS([no-cygwin])
-
 # Don't build static libs.
 AC_DISABLE_STATIC
 
@@ -21,6 +18,9 @@ AC_LIBTOOL_WIN32_DLL
 
 AC_PROG_LIBTOOL
 
+# Check for Cygwin specifics
+MVNAT_CYGWIN_FLAGS([no-cygwin])
+
 # Find the Java SDK
 MVNAT_JAVA_JDK
 
@@ -28,7 +28,7 @@ MVNAT_JAVA_JDK
 
 # Checks for header files.
 AC_HEADER_STDC([])
-AC_CHECK_HEADERS([stdio.h])
+AC_CHECK_HEADERS([windows.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 
