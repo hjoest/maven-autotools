@@ -1,7 +1,14 @@
 package net.sf.maven.plugin.autotools;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+
+import org.codehaus.plexus.util.IOUtil;
 
 
 public class FileUtils
@@ -17,6 +24,32 @@ extends org.codehaus.plexus.util.FileUtils {
             return file.exists();
         } catch (IOException ex) {
             return false;
+        }
+    }
+
+
+    public static void appendURLToFile(URL source, File destination)
+    throws IOException {
+        File temp = destination;
+        int c = 1;
+        while (temp.exists()) {
+            temp = new File(destination.getPath() + "." + c);
+            c++;
+        }
+        copyURLToFile(source, temp);
+        if (temp != destination) {
+            OutputStream ostream = new FileOutputStream(destination, true);
+            try {
+                InputStream istream = new FileInputStream(temp);
+                try {
+                    IOUtil.copy(istream, ostream);
+                } finally {
+                    istream.close();
+                }
+            } finally {
+                ostream.close();
+            }
+            temp.delete();
         }
     }
 

@@ -7,11 +7,12 @@ AM_INIT_AUTOMAKE
 AC_PREREQ(2.59)
 
 # Where to generate output; srcdir location.
-AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([bar.c])
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_MACRO_DIR([m4])
 
-# Check for WIN32/CYGWIN specific flags
-AC_WIN32_CYGWIN_FLAGS([cygwin])
+# Check for Cygwin specifics
+MVNAT_CYGWIN_FLAGS([cygwin])
 
 # Don't build shared libs.
 AC_DISABLE_SHARED

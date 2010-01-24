@@ -1,0 +1,9 @@
+source(basedir + "/../../../src/it/verify-utils.bsh");
+
+String actual = execTarget("hello", "usingmacros/target");
+String expected = "Hello World";
+if (!expected.equals(actual)) {
+    throw new Exception("Output assertion failed, expected = '"
+                        + expected + "', actual = '" + actual + "'");
+}
+
