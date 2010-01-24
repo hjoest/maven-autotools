@@ -349,9 +349,9 @@
         </plugins>
     </reporting>
     <modules>
-        <module>maven-autotools-plugin</module>
-        <module>maven-autotools-archetype</module>
-        <module>maven-autotools-it</module>
+        <module>plugin</module>
+        <module>archetype</module>
+        <module>it</module>
     </modules>
 </project>
 
