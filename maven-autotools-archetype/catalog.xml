@@ -3,9 +3,16 @@
     <archetypes>
         <archetype>
             <groupId>net.sf.maven-autotools</groupId>
-            <artifactId>maven-autotools-archetype</artifactId>
+            <artifactId>maven-autotools-archetype-executable</artifactId>
             <version>0.2-SNAPSHOT</version>
-            <description>Archetype for creating an Autotools project</description>
+            <description>Autotools archetype for creating an executable</description>
+            <repository>http://joest.org/repo</repository>
+        </archetype>
+        <archetype>
+            <groupId>net.sf.maven-autotools</groupId>
+            <artifactId>maven-autotools-archetype-shared</artifactId>
+            <version>0.2-SNAPSHOT</version>
+            <description>Autotools archetype for creating a shared library (with JNI)</description>
             <repository>http://joest.org/repo</repository>
         </archetype>
     </archetypes>
