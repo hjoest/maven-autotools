@@ -9,8 +9,6 @@ import java.io.UnsupportedEncodingException;
 
 import junit.framework.TestCase;
 
-import org.codehaus.plexus.util.FileUtils;
-
 
 public class SymlinkUtilsTest
 extends TestCase {
@@ -29,7 +27,11 @@ extends TestCase {
     protected void tearDown()
     throws Exception {
         if (root != null) {
-            FileUtils.deleteDirectory(root);
+            try {
+                SymlinkUtils.deleteSymlinks(root);
+            } finally {
+                FileUtils.deleteDirectory(root);
+            }
         }
         root = null;
     }
