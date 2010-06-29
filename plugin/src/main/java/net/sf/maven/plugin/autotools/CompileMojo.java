@@ -51,6 +51,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.InterpolationFilterReader;
+import org.codehaus.plexus.util.StringUtils;
 
 
 /**
@@ -296,7 +297,7 @@ extends AbstractMojo {
                   && !FileUtils.fileExists(configureDirectory, "Makefile.in")) {
                 commands.add("aclocal");
                 commands.add("autoheader");
-                commands.add("libtoolize -c -f" + (verbose ? "" : " --quiet"));
+                commands.add( command( "libtoolize" ) + " -c -f" + (verbose ? "" : " --quiet"));
                 commands.add("automake -c -f -a" + (verbose ? "" : " -W none"));
                 createEmptyIfDoesNotExist(configureDirectory, "NEWS");
                 createEmptyIfDoesNotExist(configureDirectory, "README");
@@ -328,6 +329,14 @@ extends AbstractMojo {
             }
         }
     }
+
+
+	static String command( final String command )
+	{
+		final String envVar = "MAVEN_AUTOTOOLS_" + command.toUpperCase();
+		final String envValue = System.getenv( envVar );
+		return StringUtils.isEmpty( envValue ) ? command : envValue;
+	}
 
 
     private File extractScript(String scriptName)
