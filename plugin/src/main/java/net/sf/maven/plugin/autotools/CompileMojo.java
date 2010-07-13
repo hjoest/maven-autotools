@@ -143,6 +143,27 @@ extends AbstractMojo {
      */
     private org.apache.maven.project.MavenProject mavenProject;
 
+    
+    // TODO: this should really be determined automatically from AC_CONFIG_MACRO_DIR in configure.ac
+	/**
+	 * The name of the sub-directory of {@link #autotoolsMainDirectory} in which
+	 * m4 macros reside. Note that ATM this setting needs to be consistent with
+	 * AC_CONFIG_MACRO_DIR in configure.ac and -I flags in ACLOCAL_AMFLAGS in
+	 * Makefile.am.
+	 * 
+	 * @parameter default-value="m4" 
+	 */
+	private String macroDirectoryName;
+
+	/**
+	 * Whether to use 'autoreconf'. If false, a more brittle, hard-coded
+	 * sequence of aclocal, autoheader, libtoolize, automake and autoconf will
+	 * be used.
+	 * 
+	 * @parameter default-value="true"
+	 */
+	private boolean autoreconf;
+    
     /**
      * Used to run child processes.
      */
@@ -153,7 +174,6 @@ extends AbstractMojo {
      * same configuration.
      */
     private RepeatedExecutions repeated = new RepeatedExecutions();
-
 
     /**
      * {@inheritDoc}
@@ -186,6 +206,7 @@ extends AbstractMojo {
             installDirectory.mkdirs();
             makeSymlinks(autotoolsMainDirectory, configureDirectory);
             makeSymlinks(nativeMainDirectory, configureDirectory);
+            makeM4Directory();
             writeM4Macros();
             if (!FileUtils.fileExists(configureDirectory, "Makefile.am")) {
                 // If not produced by automake, it is highly probable that the
@@ -203,6 +224,14 @@ extends AbstractMojo {
             throw new MojoExecutionException("Failed to resolve artifact", ex);
         }
     }
+
+
+	private void makeM4Directory()
+	{
+		if( ! FileUtils.fileExists( configureDirectory, macroDirectoryName ) ) {
+			new File( configureDirectory, macroDirectoryName ).mkdir();
+		}
+	}
 
 
     private void configure()
@@ -280,7 +309,7 @@ extends AbstractMojo {
         }
     }
 
-
+    
     private void autoconf()
     throws Exception {
         List<String> commands = new ArrayList<String>();
@@ -295,19 +324,25 @@ extends AbstractMojo {
             }
             if (!FileUtils.fileExists(configureDirectory, "configure.in")
                   && !FileUtils.fileExists(configureDirectory, "Makefile.in")) {
-                commands.add("aclocal");
-                commands.add("autoheader");
-                commands.add( command( "libtoolize" ) + " -c -f" + (verbose ? "" : " --quiet"));
-                commands.add("automake -c -f -a" + (verbose ? "" : " -W none"));
+            	if( ! autoreconf ) {
+	                commands.add("aclocal");
+	                commands.add("autoheader");
+	                commands.add( command( "libtoolize" ) + " -c -f" + (verbose ? "" : " --quiet"));
+	                commands.add("automake -c -f -a" + (verbose ? "" : " -W none"));
+            	}
                 createEmptyIfDoesNotExist(configureDirectory, "NEWS");
                 createEmptyIfDoesNotExist(configureDirectory, "README");
                 createEmptyIfDoesNotExist(configureDirectory, "AUTHORS");
                 createEmptyIfDoesNotExist(configureDirectory, "ChangeLog");
                 createEmptyIfDoesNotExist(configureDirectory, "COPYING");
             }
-            if (!FileUtils.fileExists(configureDirectory, "configure")) {
-                commands.add("autoconf");
-            }
+			if( ! FileUtils.fileExists( configureDirectory, "configure" ) ) {
+				if( autoreconf ) {
+					commands.add( "autoreconf --install" + ( verbose ? " --verbose" : "" ) );
+				} else {
+					commands.add( "autoconf" );
+				}
+			}
             if (verbose && getLog().isInfoEnabled()) {
                 getLog().info("cd '" + configureDirectory + "'");
             }
@@ -459,6 +494,8 @@ extends AbstractMojo {
         }
     }
 
+    
+    // TODO: This should really be replaced by simply dropping the m4's in the m4 directory
 
     private void writeM4Macros()
     throws IOException,
@@ -478,7 +515,7 @@ extends AbstractMojo {
                     new InputStreamReader(
                             new FileInputStream(configure), "UTF-8"));
         Set<String> alreadyProcessed = new HashSet<String>();
-        Pattern pattern = Pattern.compile("([A-Z|_]+[A-Z|0-9|_]*).*");
+        Pattern pattern = Pattern.compile("([A-Z_]+[A-Z0-9_]*).*");
         String line = null;
         while ((line = reader.readLine()) != null) {
             Matcher matcher = pattern.matcher(line);
@@ -581,6 +618,5 @@ extends AbstractMojo {
         exec.setStdout(sla.getStdout());
         exec.setStderr(sla.getStderr());
     }
-
 }
 

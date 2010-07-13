@@ -131,6 +131,8 @@ extends AbstractMojoTestCase {
             File directory = createOrScrubTargetDirectory(testCase, target);
             setVariableValueToObject(mojo, target + "Directory", directory);
         }
+        setVariableValueToObject( mojo, "autoreconf", false );
+        setVariableValueToObject( mojo, "macroDirectoryName", "m4" );
         setVariableValueToObject(
                 mojo, "nativeMainDirectory",
                 findSourceDirectory(testCase, "native"));
