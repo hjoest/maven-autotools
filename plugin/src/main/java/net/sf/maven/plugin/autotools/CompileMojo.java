@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
@@ -163,6 +164,23 @@ extends AbstractMojo {
 	 * @parameter default-value="true"
 	 */
 	private boolean autoreconf;
+	
+	
+	/**
+	 * Additional parameters to pass to the ./configure script. Can't use --bindir, --libdir or --includedir.
+	 * 
+	 * @parameter
+	 */
+	private String configureArgs;
+
+	
+	/**
+	 * Additional environment variables to set before running configure.
+	 * 
+	 * @parameter
+	 */
+	private Map<String,String> configureEnv;
+	
     
     /**
      * Used to run child processes.
@@ -267,6 +285,7 @@ extends AbstractMojo {
                 + FileUtils.fixAbsolutePathForUnixShell(libDirectory) + "\""
                 + " --includedir=\""
                 + FileUtils.fixAbsolutePathForUnixShell(includeDirectory)
+                + ( StringUtils.isEmpty( configureArgs ) ? "" : configureArgs + " " )
                 + "\"";
             String[] configureCommand = {
                     "sh", "-c", configure
@@ -431,20 +450,22 @@ extends AbstractMojo {
      * @return the environment
      * @throws IOException if an I/O error occurs
      */
-    private Map<String, String> makeConfigureEnvironment()
-    throws IOException {
-        File includes = new File(dependenciesDirectory, "include");
-        File libraries = new File(dependenciesDirectory, "lib");
-        libraries = makeOsArchDirectory(libraries);
-        Map<String, String> env = new HashMap<String, String>();
-        env.putAll(System.getenv());
-        env.put("CFLAGS",
-                "-I" + FileUtils.fixAbsolutePathForUnixShell(includes));
-        env.put("LDFLAGS",
-                "-L" + FileUtils.fixAbsolutePathForUnixShell(libraries));
-        return env;
-    }
+	private Map<String,String> makeConfigureEnvironment() throws IOException
+	{
+		File includes = new File( dependenciesDirectory, "include" );
+		File libraries = new File( dependenciesDirectory, "lib" );
+		libraries = makeOsArchDirectory( libraries );
+		Map<String,String> env = new HashMap<String,String>( System.getenv() );
+		if( configureEnv != null ) env.putAll( configureEnv );
+		mergeEnvVar( env, "CFLAGS", "-I" + FileUtils.fixAbsolutePathForUnixShell( includes ) );
+		mergeEnvVar( env, "LDFLAGS", "-L" + FileUtils.fixAbsolutePathForUnixShell( libraries ) );
+		return env;
+	}
 
+	private void mergeEnvVar( Map<String,String> env, final String key, final String value )
+	{
+		env.put( key, env.containsKey( key ) ? env.get( key ) + " " + value : value );
+	}
 
     /**
      * Appends system architecture and operating system name to
