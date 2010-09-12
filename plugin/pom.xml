@@ -28,6 +28,16 @@
     <packaging>maven-plugin</packaging>
     <name>maven-autotools-plugin</name>
     <url>http://maven-autotools.sourceforge.net/site/${pom.artifactId}</url>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <configuration>
+                    <goalPrefix>autotools</goalPrefix>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <dependencies>
         <dependency>
             <groupId>org.apache.maven</groupId>
