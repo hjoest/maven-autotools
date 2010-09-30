@@ -494,6 +494,7 @@ extends AbstractMojo {
             return;
         }
         for (File file : files) {
+			if( file.getName().startsWith( "." ) ) continue; // TODO: this might be to broad
             if (file.isDirectory()) {
                 File childDestinationDirectory =
                       new File(destinationDirectory, file.getName());
