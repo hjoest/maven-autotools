@@ -80,39 +80,6 @@
 	</scm>
 	<profiles>
 		<profile>
-			<id>joest-repo</id>
-			<distributionManagement>
-				<site>
-					<id>local</id>
-					<url>file://${user.dir}/target/site-all</url>
-				</site>
-				<repository>
-					<id>local</id>
-					<name>local</name>
-					<url>file://${user.dir}/target/repo</url>
-				</repository>
-				<snapshotRepository>
-					<id>local-snapshot</id>
-					<name>local-snapshot</name>
-					<url>file://${user.dir}/target/repo</url>
-				</snapshotRepository>
-			</distributionManagement>
-			<repositories>
-				<repository>
-					<id>joest</id>
-					<name>joest</name>
-					<url>http://repo.joest.org</url>
-				</repository>
-			</repositories>
-			<pluginRepositories>
-				<pluginRepository>
-					<id>joest</id>
-					<name>joest</name>
-					<url>http://repo.joest.org</url>
-				</pluginRepository>
-			</pluginRepositories>
-		</profile>
-		<profile>
 			<id>eyealike-repo</id>
 			<distributionManagement>
 				<repository>

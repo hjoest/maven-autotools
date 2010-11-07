@@ -21,13 +21,6 @@
       </plugin>
     </plugins>
   </build>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>joest</id>
-      <name>joest</name>
-      <url>http://repo.joest.org</url>
-    </pluginRepository>
-  </pluginRepositories>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
