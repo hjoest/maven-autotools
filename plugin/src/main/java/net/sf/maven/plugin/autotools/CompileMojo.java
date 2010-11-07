@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
@@ -51,6 +52,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.InterpolationFilterReader;
+import org.codehaus.plexus.util.StringUtils;
 
 
 /**
@@ -142,6 +144,44 @@ extends AbstractMojo {
      */
     private org.apache.maven.project.MavenProject mavenProject;
 
+    
+    // TODO: this should really be determined automatically from AC_CONFIG_MACRO_DIR in configure.ac
+	/**
+	 * The name of the sub-directory of {@link #autotoolsMainDirectory} in which
+	 * m4 macros reside. Note that ATM this setting needs to be consistent with
+	 * AC_CONFIG_MACRO_DIR in configure.ac and -I flags in ACLOCAL_AMFLAGS in
+	 * Makefile.am.
+	 * 
+	 * @parameter default-value="m4" 
+	 */
+	private String macroDirectoryName;
+
+	/**
+	 * Whether to use 'autoreconf'. If false, a more brittle, hard-coded
+	 * sequence of aclocal, autoheader, libtoolize, automake and autoconf will
+	 * be used.
+	 * 
+	 * @parameter default-value="true"
+	 */
+	private boolean autoreconf;
+	
+	
+	/**
+	 * Additional parameters to pass to the ./configure script. Can't use --bindir, --libdir or --includedir.
+	 * 
+	 * @parameter
+	 */
+	private String configureArgs;
+
+	
+	/**
+	 * Additional environment variables to set before running configure.
+	 * 
+	 * @parameter
+	 */
+	private Map<String,String> configureEnv;
+	
+    
     /**
      * Used to run child processes.
      */
@@ -152,7 +192,6 @@ extends AbstractMojo {
      * same configuration.
      */
     private RepeatedExecutions repeated = new RepeatedExecutions();
-
 
     /**
      * {@inheritDoc}
@@ -185,6 +224,7 @@ extends AbstractMojo {
             installDirectory.mkdirs();
             makeSymlinks(autotoolsMainDirectory, configureDirectory);
             makeSymlinks(nativeMainDirectory, configureDirectory);
+            makeM4Directory();
             writeM4Macros();
             if (!FileUtils.fileExists(configureDirectory, "Makefile.am")) {
                 // If not produced by automake, it is highly probable that the
@@ -202,6 +242,14 @@ extends AbstractMojo {
             throw new MojoExecutionException("Failed to resolve artifact", ex);
         }
     }
+
+
+	private void makeM4Directory()
+	{
+		if( ! FileUtils.fileExists( configureDirectory, macroDirectoryName ) ) {
+			new File( configureDirectory, macroDirectoryName ).mkdir();
+		}
+	}
 
 
     private void configure()
@@ -237,6 +285,7 @@ extends AbstractMojo {
                 + FileUtils.fixAbsolutePathForUnixShell(libDirectory) + "\""
                 + " --includedir=\""
                 + FileUtils.fixAbsolutePathForUnixShell(includeDirectory)
+                + ( StringUtils.isEmpty( configureArgs ) ? "" : configureArgs + " " )
                 + "\"";
             String[] configureCommand = {
                     "sh", "-c", configure
@@ -279,7 +328,7 @@ extends AbstractMojo {
         }
     }
 
-
+    
     private void autoconf()
     throws Exception {
         List<String> commands = new ArrayList<String>();
@@ -294,19 +343,25 @@ extends AbstractMojo {
             }
             if (!FileUtils.fileExists(configureDirectory, "configure.in")
                   && !FileUtils.fileExists(configureDirectory, "Makefile.in")) {
-                commands.add("aclocal");
-                commands.add("autoheader");
-                commands.add("libtoolize -c -f" + (verbose ? "" : " --quiet"));
-                commands.add("automake -c -f -a" + (verbose ? "" : " -W none"));
+            	if( ! autoreconf ) {
+	                commands.add("aclocal");
+	                commands.add("autoheader");
+	                commands.add( command( "libtoolize" ) + " -c -f" + (verbose ? "" : " --quiet"));
+	                commands.add("automake -c -f -a" + (verbose ? "" : " -W none"));
+            	}
                 createEmptyIfDoesNotExist(configureDirectory, "NEWS");
                 createEmptyIfDoesNotExist(configureDirectory, "README");
                 createEmptyIfDoesNotExist(configureDirectory, "AUTHORS");
                 createEmptyIfDoesNotExist(configureDirectory, "ChangeLog");
                 createEmptyIfDoesNotExist(configureDirectory, "COPYING");
             }
-            if (!FileUtils.fileExists(configureDirectory, "configure")) {
-                commands.add("autoconf");
-            }
+			if( ! FileUtils.fileExists( configureDirectory, "configure" ) ) {
+				if( autoreconf ) {
+					commands.add( "autoreconf --install" + ( verbose ? " --verbose" : "" ) );
+				} else {
+					commands.add( "autoconf" );
+				}
+			}
             if (verbose && getLog().isInfoEnabled()) {
                 getLog().info("cd '" + configureDirectory + "'");
             }
@@ -328,6 +383,14 @@ extends AbstractMojo {
             }
         }
     }
+
+
+	static String command( final String command )
+	{
+		final String envVar = "MAVEN_AUTOTOOLS_" + command.toUpperCase();
+		final String envValue = System.getenv( envVar );
+		return StringUtils.isEmpty( envValue ) ? command : envValue;
+	}
 
 
     private File extractScript(String scriptName)
@@ -387,20 +450,22 @@ extends AbstractMojo {
      * @return the environment
      * @throws IOException if an I/O error occurs
      */
-    private Map<String, String> makeConfigureEnvironment()
-    throws IOException {
-        File includes = new File(dependenciesDirectory, "include");
-        File libraries = new File(dependenciesDirectory, "lib");
-        libraries = makeOsArchDirectory(libraries);
-        Map<String, String> env = new HashMap<String, String>();
-        env.putAll(System.getenv());
-        env.put("CFLAGS",
-                "-I" + FileUtils.fixAbsolutePathForUnixShell(includes));
-        env.put("LDFLAGS",
-                "-L" + FileUtils.fixAbsolutePathForUnixShell(libraries));
-        return env;
-    }
+	private Map<String,String> makeConfigureEnvironment() throws IOException
+	{
+		File includes = new File( dependenciesDirectory, "include" );
+		File libraries = new File( dependenciesDirectory, "lib" );
+		libraries = makeOsArchDirectory( libraries );
+		Map<String,String> env = new HashMap<String,String>( System.getenv() );
+		if( configureEnv != null ) env.putAll( configureEnv );
+		mergeEnvVar( env, "CFLAGS", "-I" + FileUtils.fixAbsolutePathForUnixShell( includes ) );
+		mergeEnvVar( env, "LDFLAGS", "-L" + FileUtils.fixAbsolutePathForUnixShell( libraries ) );
+		return env;
+	}
 
+	private void mergeEnvVar( Map<String,String> env, final String key, final String value )
+	{
+		env.put( key, env.containsKey( key ) ? env.get( key ) + " " + value : value );
+	}
 
     /**
      * Appends system architecture and operating system name to
@@ -429,6 +494,7 @@ extends AbstractMojo {
             return;
         }
         for (File file : files) {
+			if( file.getName().startsWith( "." ) ) continue; // TODO: this might be to broad
             if (file.isDirectory()) {
                 File childDestinationDirectory =
                       new File(destinationDirectory, file.getName());
@@ -450,6 +516,8 @@ extends AbstractMojo {
         }
     }
 
+    
+    // TODO: This should really be replaced by simply dropping the m4's in the m4 directory
 
     private void writeM4Macros()
     throws IOException,
@@ -469,7 +537,7 @@ extends AbstractMojo {
                     new InputStreamReader(
                             new FileInputStream(configure), "UTF-8"));
         Set<String> alreadyProcessed = new HashSet<String>();
-        Pattern pattern = Pattern.compile("([A-Z|_]+[A-Z|0-9|_]*).*");
+        Pattern pattern = Pattern.compile("([A-Z_]+[A-Z0-9_]*).*");
         String line = null;
         while ((line = reader.readLine()) != null) {
             Matcher matcher = pattern.matcher(line);
@@ -572,6 +640,5 @@ extends AbstractMojo {
         exec.setStdout(sla.getStdout());
         exec.setStderr(sla.getStderr());
     }
-
 }
 

@@ -24,6 +24,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
+import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 
@@ -119,6 +120,9 @@ extends AbstractMojo {
             getLog().info("Skipping repeated execution");
             return;
         }
+        // Nudge archiver to use the mode of the input file system 
+        jarArchiver.setDefaultFileMode( 0 );
+        jarArchiver.setDefaultDirectoryMode( 0 );
         File jarFile = createArchive();
         Environment environment = Environment.getEnvironment();
         String classifier = environment.getClassifier();

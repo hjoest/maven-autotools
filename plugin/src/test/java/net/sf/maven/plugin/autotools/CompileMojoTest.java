@@ -98,7 +98,7 @@ extends AbstractMojoTestCase {
         String[][] commands = {
                 { "sh", "-c", "aclocal" },
                 { "sh", "-c", "autoheader" },
-                { "sh", "-c", "libtoolize -c -f --quiet" },
+                { "sh", "-c", CompileMojo.command( "libtoolize" ) + " -c -f --quiet" },
                 { "sh", "-c", "automake -c -f -a -W none" },
                 { "sh", "-c", "autoconf" },
                 { "sh", "-c",
@@ -131,6 +131,8 @@ extends AbstractMojoTestCase {
             File directory = createOrScrubTargetDirectory(testCase, target);
             setVariableValueToObject(mojo, target + "Directory", directory);
         }
+        setVariableValueToObject( mojo, "autoreconf", false );
+        setVariableValueToObject( mojo, "macroDirectoryName", "m4" );
         setVariableValueToObject(
                 mojo, "nativeMainDirectory",
                 findSourceDirectory(testCase, "native"));

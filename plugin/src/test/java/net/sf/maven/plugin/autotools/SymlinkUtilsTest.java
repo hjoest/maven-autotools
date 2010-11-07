@@ -142,7 +142,7 @@ extends TestCase {
         File directory = File.createTempFile("symlinkutils-", "");
         directory.delete();
         directory.mkdir();
-        return directory;
+        return directory.getCanonicalFile();
     }
 
 }
