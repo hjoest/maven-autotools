@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006-2009 Holger Joest <hjoest@users.sourceforge.net>
+ * Copyright (C) 2010 Hannes Schmidt <hannes.schmidt@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

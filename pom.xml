@@ -66,6 +66,12 @@
 			<timezone>+1</timezone>
 		</developer>
 	</developers>
+        <contributors>
+                <contributor>
+                        <name>Hannes Schmidt</name>
+                        <email>hannes.schmidt@gmail.com</email>
+                </contributor>
+        </contributors>
 	<licenses>
 		<license>
 			<name>Apache License Version 2.0</name>
