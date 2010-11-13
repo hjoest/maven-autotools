@@ -54,18 +54,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>net.sf.maven-autotools</groupId>
-                <artifactId>maven-autotools-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>pre-clean</id>
-                        <goals>
-                            <goal>pre-clean</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 </project>

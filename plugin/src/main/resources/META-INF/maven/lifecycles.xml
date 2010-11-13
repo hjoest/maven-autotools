@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<lifecycles>
+    <lifecycle>
+        <id>clean</id>
+        <phases>
+            <id>pre-clean</id>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>clean</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </phases>
+    </lifecycle>
+</lifecycles>

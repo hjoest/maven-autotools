@@ -53,19 +53,6 @@
                         org.apache.maven.plugins:maven-deploy-plugin:deploy
                     </deploy>
                 </phases>
-                <lifecycles>
-                    <lifecycle>
-                        <id>clean</id>
-                        <phases>
-                            <pre-clean>
-                                net.sf.maven-autotools:maven-autotools-plugin:pre-clean
-                            </pre-clean>
-                            <clean>
-                                org.apache.maven.plugins:maven-clean-plugin:clean
-                            </clean>
-                        </phases>
-                    </lifecycle>
-                </lifecycles>
             </configuration>
         </component>
     </components>
