@@ -285,9 +285,8 @@ extends AbstractMojo {
                 + " --libdir=\""
                 + FileUtils.fixAbsolutePathForUnixShell(libDirectory) + "\""
                 + " --includedir=\""
-                + FileUtils.fixAbsolutePathForUnixShell(includeDirectory)
-                + ( StringUtils.isEmpty( configureArgs ) ? "" : configureArgs + " " )
-                + "\"";
+                + FileUtils.fixAbsolutePathForUnixShell(includeDirectory) + "\""
+                + (StringUtils.isEmpty(configureArgs) ? "" : " " + configureArgs);
             String[] configureCommand = {
                     "sh", "-c", configure
             };
