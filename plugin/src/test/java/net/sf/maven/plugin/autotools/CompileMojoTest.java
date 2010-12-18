@@ -53,7 +53,40 @@ extends AbstractMojoTestCase {
     }
 
 
-    public void testAutoconfOnly()
+    public void testConfigure()
+    throws Exception {
+        String name = "configure";
+        CompileMojo mojo = createCompileMojo(name);
+        File installDirectory =
+            getTestFile("target/test-harness/" + name + "/install");
+        Environment env = Environment.getEnvironment();
+        String host =
+            env.getSystemArchitecture() + "/" + env.getOperatingSystem();
+        String[][] commands = {
+                { "sh", "-c",
+                    "../configure/configure"
+                    + " --silent"
+                    + " --bindir=\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "bin/" + host)) + "\""
+                    + " --libdir=\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "lib/" + host)) + "\""
+                    + " --includedir=\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "include")) + "\""
+                },
+                { "sh", "-c", "make" },
+                { "sh", "-c", "make install" }
+        };
+        setupExpectations(name, commands);
+        replay(exec);
+        mojo.execute();
+        verify(exec);
+    }
+
+
+    public void testAutoconf()
     throws Exception {
         String name = "autoconf";
         CompileMojo mojo = createCompileMojo(name);
@@ -97,6 +130,47 @@ extends AbstractMojoTestCase {
         String host =
             env.getSystemArchitecture() + "/" + env.getOperatingSystem();
         String[][] commands = {
+                { "sh", "-c", "aclocal" },
+                { "sh", "-c", "autoheader" },
+                { "sh", "-c", CompileMojo.command( "libtoolize" ) + " -c -f --quiet" },
+                { "sh", "-c", "automake -c -f -a -W none" },
+                { "sh", "-c", "autoconf" },
+                { "sh", "-c",
+                    "../configure/configure"
+                    + " --silent"
+                    + " --bindir=\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "bin/" + host)) + "\""
+                    + " --libdir=\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "lib/" + host)) + "\""
+                    + " --includedir=\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "include")) + "\""
+                },
+                { "sh", "-c", "make" },
+                { "sh", "-c", "make install" }
+        };
+        setupExpectations(name, commands);
+        replay(exec);
+        mojo.execute();
+        verify(exec);
+    }
+
+
+    public void testAutoscan()
+    throws Exception {
+        String name = "autoscan";
+        CompileMojo mojo = createCompileMojo(name);
+        setVariableValueToObject(mojo, "generatedScriptPostfix", "XYZ");
+        File installDirectory =
+            getTestFile("target/test-harness/" + name + "/install");
+        Environment env = Environment.getEnvironment();
+        String host =
+            env.getSystemArchitecture() + "/" + env.getOperatingSystem();
+        String[][] commands = {
+                { "sh", "-c", "autoscan" },
+                { "sh", "-c", "./.autoscan-post-XYZ" },
                 { "sh", "-c", "aclocal" },
                 { "sh", "-c", "autoheader" },
                 { "sh", "-c", CompileMojo.command( "libtoolize" ) + " -c -f --quiet" },

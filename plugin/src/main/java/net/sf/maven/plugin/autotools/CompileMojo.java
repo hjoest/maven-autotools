@@ -195,6 +195,13 @@ extends AbstractMojo {
     private RepeatedExecutions repeated = new RepeatedExecutions();
 
     /**
+     * Postfix for generated scripts.
+     *
+     * @parameter
+     */
+    private String generatedScriptPostfix;
+
+    /**
      * {@inheritDoc}
      * @see org.apache.maven.plugin.AbstractMojo#execute()
      */
@@ -338,7 +345,7 @@ extends AbstractMojo {
                   && !FileUtils.fileExists(configureDirectory, "configure.in")
                   && !FileUtils.fileExists(configureDirectory, "Makefile.in")) {
                 commands.add("autoscan");
-                autoscanPost = extractScript("autoscan-post");
+                autoscanPost = extractAutoscanScript("autoscan-post");
                 commands.add("./" + autoscanPost.getName());
             }
             if (!FileUtils.fileExists(configureDirectory, "configure.in")
@@ -393,12 +400,17 @@ extends AbstractMojo {
 	}
 
 
-    private File extractScript(String scriptName)
+    private File extractAutoscanScript(String scriptName)
     throws IOException {
-        int rnd = Math.abs(new Random().nextInt());
-        String temporaryScriptName = "." + scriptName + "-" + rnd;
+        String temporaryScriptName = "." + scriptName + "-";
+        if (generatedScriptPostfix != null) {
+            temporaryScriptName += generatedScriptPostfix;
+        } else {
+            int rnd = Math.abs(new Random().nextInt());
+            temporaryScriptName += Integer.toString(rnd);
+        }
         File script = new File(configureDirectory, temporaryScriptName);
-        Map<String, String> variables = makeVariables();
+        Map<String, String> variables = makeAutoscanVariables();
         Reader reader =
                   new InterpolationFilterReader(
                           new InputStreamReader(
@@ -423,7 +435,7 @@ extends AbstractMojo {
     }
 
 
-    private Map<String, String> makeVariables() {
+    private Map<String, String> makeAutoscanVariables() {
         Map<String, String> variables = new HashMap<String, String>();
         File[] sources = nativeMainDirectory.listFiles();
         String programName = null;

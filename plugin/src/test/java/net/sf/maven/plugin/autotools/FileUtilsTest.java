@@ -42,6 +42,18 @@ extends TestCase {
     }
 
 
+    public void testCalculateMoreComplicatedRelativePath()
+    throws Exception {
+        File sampleDirectory = createDirectory(root, "a/b/c");
+        File parentDirectory = sampleDirectory.getParentFile();
+        File nephewDirectory = createDirectory(parentDirectory, "d/e");
+        File sample = createFile(nephewDirectory, "sample.txt", "Simple");
+        String result = FileUtils.calculateRelativePath(sampleDirectory,
+                                                        sample);
+        assertEquals("../d/e/sample.txt", result);
+    }
+
+
     private File createDirectory(File root, String path) {
         File directory = new File(root, path);
         directory.mkdirs();
