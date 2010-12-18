@@ -28,10 +28,15 @@
                 <include>*.m4</include>
                 <include>AUTHORS</include>
                 <include>ChangeLog</include>
-                <include>configure.ac</include>
-                <include>Makefile.am</include>
                 <include>NEWS</include>
                 <include>README</include>
+            </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="false">
+            <directory>src/main/autotools</directory>
+            <includes>
+                <include>configure.ac</include>
+                <include>Makefile.am</include>
             </includes>
         </fileSet>
     </fileSets>
