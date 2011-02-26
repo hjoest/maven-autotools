@@ -174,6 +174,12 @@ extends AbstractMojo {
 	 */
 	private String configureArgs;
 
+        /**
+         * Compile for MinGW host on Windows.
+         *
+         * @parameter default-value="false"
+         */
+        private String mingw;
 	
 	/**
 	 * Additional environment variables to set before running configure.
@@ -182,7 +188,6 @@ extends AbstractMojo {
 	 */
 	private Map<String,String> configureEnv;
 	
-    
     /**
      * Used to run child processes.
      */
@@ -292,8 +297,22 @@ extends AbstractMojo {
                 + " --libdir=\""
                 + FileUtils.fixAbsolutePathForUnixShell(libDirectory) + "\""
                 + " --includedir=\""
-                + FileUtils.fixAbsolutePathForUnixShell(includeDirectory) + "\""
-                + (StringUtils.isEmpty(configureArgs) ? "" : " " + configureArgs);
+                + FileUtils.fixAbsolutePathForUnixShell(includeDirectory) + "\"";
+            if (Boolean.valueOf(mingw)) {
+                Environment environment = Environment.getEnvironment();
+                String arch = environment.getSystemArchitecture();
+                String os = environment.getOperatingSystem();
+                if ("windows".equals(os)) {
+                    if ("amd64".equals(arch)) {
+                        configure += " --host=x86_64-w64-mingw32";
+                    } else {
+                        configure += " --host=i686-w64-mingw32";
+                    }
+                }
+            }
+            if (!StringUtils.isEmpty(configureArgs)) {
+                configure += " " + configureArgs;
+            }
             String[] configureCommand = {
                     "sh", "-c", configure
             };

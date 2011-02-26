@@ -16,6 +16,7 @@
         <configuration>
             <verbose>false</verbose>
             <cumulativeHeader>jni-${artifactId}.h</cumulativeHeader>
+            <mingw>true</mingw>
         </configuration>
         <extensions>true</extensions>
       </plugin>
