@@ -180,8 +180,23 @@ extends AbstractMojo {
          * @parameter default-value="false"
          */
         private String mingw;
-	
-	/**
+
+    /**
+     * Allows to provide alternative names for target platforms, particularly
+     * names of operating systems and platform architectures.
+     *
+     * Examples:
+     * &lt;platformMapping&gt;
+     *     &lt;windows&gt;evil&lt;/windows&gt;
+     *     &lt;x86&gt;i386&lt;/x86&gt;
+     *     &lt;macosx.ppc&gt;mac.power&lt;/macosx.ppc&gt;
+     * &lt;/platformMapping&gt;
+     *
+     * @parameter
+     */
+    private Map<String,String> platformMapping;
+
+    /**
 	 * Additional environment variables to set before running configure.
 	 * 
 	 * @parameter
@@ -221,6 +236,10 @@ extends AbstractMojo {
                                 dependenciesDirectory)) {
             getLog().info("Skipping repeated execution");
             return;
+        }
+        Environment environment = Environment.getEnvironment();
+        if (platformMapping != null) {
+            environment.applyPlatformMapping(platformMapping);
         }
         initLogging();
         prepareBuild();

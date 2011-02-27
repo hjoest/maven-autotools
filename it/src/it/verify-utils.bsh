@@ -4,9 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 
-String execTarget(String binname, String targetPath) {
-    String arch = getSystemArchitecture();
-    String os = getOperatingSystem();
+String execTarget(String binname, String targetPath, String arch, String os) {
     String binext = "windows".equals(getOperatingSystem()) ? ".exe" : "";
     String binpath = targetPath
                      + "/autotools/install/bin"
@@ -29,6 +27,13 @@ String execTarget(String binname, String targetPath) {
     stdout.close();
     output.close();
     return output.toString("UTF-8").trim();
+}
+
+
+String execTarget(String binname, String targetPath) {
+    String arch = getSystemArchitecture();
+    String os = getOperatingSystem();
+    return execTarget(binname, targetPath, arch, os);
 }
 
 

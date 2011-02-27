@@ -34,6 +34,9 @@ public final class Environment {
     /** */
     private String arch;
 
+    /** */
+    private Map<String, String> platformMapping;
+
 
     /**
      * No public instantiation.
@@ -52,6 +55,7 @@ public final class Environment {
         } else if (arch.equals("powerpc")) {
            arch = "ppc";
         }
+        platformMapping = new HashMap<String, String>();
     }
 
 
@@ -101,6 +105,15 @@ public final class Environment {
      * @return the operating system name
      */
     public String getOperatingSystem() {
+        String mapped = platformMapping.get(os + "." + arch);
+        if (mapped != null && mapped.indexOf('.') > -1) {
+            mapped = mapped.split(".")[0];
+        } else {
+            mapped = platformMapping.get(os);
+        }
+        if (mapped != null) {
+            return mapped;
+        }
         return os;
     }
 
@@ -111,7 +124,28 @@ public final class Environment {
      * @return the architecture
      */
     public String getSystemArchitecture() {
+        String mapped = platformMapping.get(os + "." + arch);
+        if (mapped != null && mapped.indexOf('.') > -1) {
+            mapped = mapped.split(".")[1];
+        } else {
+            mapped = platformMapping.get(arch);
+        }
+        if (mapped != null) {
+            return mapped;
+        }
         return arch;
+    }
+
+
+    /**
+     * Provide alternative names for target platforms.
+     */
+    public void applyPlatformMapping(Map<String, String> platformMapping) {
+        Map<String, String> clonedMapping = new HashMap<String, String>();
+        if (platformMapping != null) {
+            clonedMapping.putAll(platformMapping);
+        }
+        this.platformMapping = clonedMapping;
     }
 
 
