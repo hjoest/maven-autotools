@@ -7,9 +7,7 @@ import java.io.InputStream;
 String execTarget(String binname, String targetPath) {
     String arch = getSystemArchitecture();
     String os = getOperatingSystem();
-
-    String binext = "windows".equals(os) ? ".exe" : "";
-
+    String binext = "windows".equals(getOperatingSystem()) ? ".exe" : "";
     String binpath = targetPath
                      + "/autotools/install/bin"
                      + "/" + arch + "/" + os + "/" + binname + binext;
@@ -52,8 +50,10 @@ String getOperatingSystem() {
 
 String getSystemArchitecture() {
     String arch = System.getProperty("os.arch").toLowerCase();
-    if (arch.equals("x86")) {
-       arch = "i386";
+    if (arch.equals("i386")) {
+       arch = "x86";
+    } else if (arch.equals("amd64")) {
+       arch = "x86_64";
     }
     return arch;
 }

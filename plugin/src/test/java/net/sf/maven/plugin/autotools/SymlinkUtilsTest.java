@@ -100,8 +100,7 @@ extends TestCase {
 
     public void testCreateSymlinkWithUnicodeCharacters()
     throws Exception {
-        String os = Environment.getEnvironment().getOperatingSystem();
-        if ("windows".equals(os)) {
+        if (Environment.getEnvironment().isWindows()) {
             // FIXME: Found no way to fix this on Windows...
             return;
         }

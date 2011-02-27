@@ -92,8 +92,7 @@ extends org.codehaus.plexus.util.FileUtils {
             bp = p;
         }
         if (bp == 0 || bp > targetPath.length()) {
-            String os = Environment.getEnvironment().getOperatingSystem();
-            if ("windows".equals(os)) {
+            if (Environment.getEnvironment().isWindows()) {
                 return fixAbsolutePathForUnixShell(targetPath);
             }
             return targetPath;
@@ -128,8 +127,7 @@ extends org.codehaus.plexus.util.FileUtils {
      * @return the fixed path
      */
     public static String fixAbsolutePathForUnixShell(String path) {
-        String os = Environment.getEnvironment().getOperatingSystem();
-        if ("windows".equals(os)
+        if (Environment.getEnvironment().isWindows()
                 && path.length() > 2
                 && path.charAt(1) == ':') {
             path = "/cygdrive/"

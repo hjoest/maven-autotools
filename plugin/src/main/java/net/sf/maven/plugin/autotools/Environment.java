@@ -16,6 +16,9 @@
 
 package net.sf.maven.plugin.autotools;
 
+import java.util.Map;
+import java.util.HashMap;
+
 
 /**
  *
@@ -25,11 +28,70 @@ public final class Environment {
     /** */
     private static Environment environment = new Environment();
 
+    /** */
+    private String os;
+
+    /** */
+    private String arch;
+
 
     /**
-     * No instantiation.
+     * No public instantiation.
      */
     private Environment() {
+        os = System.getProperty("os.name").toLowerCase();
+        if (os.startsWith("windows")) {
+            os = "windows";
+        }
+        os = os.replaceAll("[ /]", "");
+        arch = System.getProperty("os.arch").toLowerCase();
+        if (arch.equals("i386")) {
+           arch = "x86";
+        } else if (arch.equals("amd64")) {
+           arch = "x86_64";
+        } else if (arch.equals("powerpc")) {
+           arch = "ppc";
+        }
+    }
+
+
+    public boolean isWindows() {
+        return "windows".equals(os);
+    }
+
+
+    public boolean isLinux() {
+        return "linux".equals(os);
+    }
+
+
+    public boolean isMacOSX() {
+        return "macosx".equals(os);
+    }
+
+
+    public boolean isX86() {
+        return "x86".equals(arch);
+    }
+
+
+    public boolean isX86_64() {
+        return "x86_64".equals(arch);
+    }
+
+
+    public boolean isPPC() {
+        return "ppc".equals(arch);
+    }
+
+
+    public boolean isPPC64() {
+        return "ppc64".equals(arch);
+    }
+
+
+    public boolean isSparc() {
+        return "sparc".equals(arch);
     }
 
 
@@ -39,13 +101,6 @@ public final class Environment {
      * @return the operating system name
      */
     public String getOperatingSystem() {
-        String os = System.getProperty("os.name").toLowerCase();
-        if (os.startsWith("windows")) {
-            os = "windows";
-        } else if (os.startsWith("netware")) {
-            os = "netware";
-        }
-        os = os.replaceAll("[ /]", "");
         return os;
     }
 
@@ -56,10 +111,6 @@ public final class Environment {
      * @return the architecture
      */
     public String getSystemArchitecture() {
-        String arch = System.getProperty("os.arch").toLowerCase();
-        if (arch.equals("x86")) {
-           arch = "i386";
-        }
         return arch;
     }
 
@@ -85,4 +136,3 @@ public final class Environment {
     }
 
 }
-

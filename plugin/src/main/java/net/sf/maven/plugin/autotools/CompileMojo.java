@@ -300,10 +300,8 @@ extends AbstractMojo {
                 + FileUtils.fixAbsolutePathForUnixShell(includeDirectory) + "\"";
             if (Boolean.valueOf(mingw)) {
                 Environment environment = Environment.getEnvironment();
-                String arch = environment.getSystemArchitecture();
-                String os = environment.getOperatingSystem();
-                if ("windows".equals(os)) {
-                    if ("amd64".equals(arch)) {
+                if (environment.isWindows()) {
+                    if (environment.isX86_64()) {
                         configure += " --host=x86_64-w64-mingw32";
                     } else {
                         configure += " --host=i686-w64-mingw32";

@@ -131,8 +131,7 @@ extends AbstractMojo {
 
 
     private static String getJavaToolPath(String tool) {
-        String os = Environment.getEnvironment().getOperatingSystem();
-        if (os.equals("windows")) {
+        if (Environment.getEnvironment().isWindows()) {
             tool += ".exe";
         }
         File binDir = new File(getJavaHome(), "bin");
