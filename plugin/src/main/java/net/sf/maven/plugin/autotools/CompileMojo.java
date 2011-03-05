@@ -366,12 +366,38 @@ extends AbstractMojo {
             exec.execProcess(makeInstallCommand,
                              null,
                              workingDirectory);
+            moveDLLsToLibDirectory();
         } catch (Exception ex) {
             throw new MojoExecutionException("Failed to run \"make\"", ex);
         }
     }
 
     
+    /**
+     * This is a hack necessary for Windows to move DLLs to the right
+     * location after 'make install'.
+     */
+    private void moveDLLsToLibDirectory()
+    throws IOException {
+        Environment environment = Environment.getEnvironment();
+        if (environment.isWindows()) {
+            File libraries = new File(installDirectory, "lib");
+            File libDirectory = makeOsArchDirectory(libraries);
+            File invalidBinDir = new File(libDirectory, "../bin");
+            if (invalidBinDir.exists()) {
+                File[] children = invalidBinDir.listFiles();
+                for (int k = 0; k < children.length; ++k) {
+                    File child = children[k];
+                    File movedChild = new File(libDirectory,
+                                               child.getName());
+                    FileUtils.rename(child, movedChild);
+                }
+            }
+            invalidBinDir.delete();
+        }
+    }
+
+
     private void autoconf()
     throws Exception {
         List<String> commands = new ArrayList<String>();
