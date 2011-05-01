@@ -22,11 +22,9 @@
 	<artifactId>maven-autotools</artifactId>
 	<packaging>pom</packaging>
 	<name>maven-autotools</name>
-	<description>
-		The Maven2 Autotools Plugin runs GNU Autotools from a Maven2 build.
-	</description>
-	<version>0.2-SNAPSHOT</version>
-	<url>http://maven-autotools.sourceforge.net/site</url>
+        <description>The Maven Autotools Plugin runs GNU Autotools from a Maven build.</description>
+        <version>0.2-SNAPSHOT</version>
+        <url>http://maven-autotools.sourceforge.net</url>
 	<inceptionYear>2006</inceptionYear>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
