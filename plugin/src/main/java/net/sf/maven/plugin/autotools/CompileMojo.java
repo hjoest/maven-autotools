@@ -590,8 +590,6 @@ extends AbstractMojo {
         }
     }
 
-    
-    // TODO: This should really be replaced by simply dropping the m4's in the m4 directory
 
     private void writeM4Macros()
     throws IOException,
@@ -602,7 +600,6 @@ extends AbstractMojo {
             return;
         }
         List<Artifact> macroArtifacts = resolveDependencies(macroDependencies);
-        File target = new File(configureDirectory, "acinclude.m4");
         File configure =
             SymlinkUtils.resolveSymlink(
                     new File(configureDirectory, "configure.ac"));
@@ -613,6 +610,8 @@ extends AbstractMojo {
         Set<String> alreadyProcessed = new HashSet<String>();
         Pattern pattern = Pattern.compile("([A-Z_]+[A-Z0-9_]*).*");
         String line = null;
+        File m4Directory = new File(configureDirectory, "m4");
+        m4Directory.mkdir();
         while ((line = reader.readLine()) != null) {
             Matcher matcher = pattern.matcher(line);
             if (!matcher.matches()) {
@@ -623,14 +622,18 @@ extends AbstractMojo {
                 continue;
             }
             try {
-                URL macroUrl = findResource(macroArtifacts, macro + ".m4");
-                if (macroUrl != null) {
-                    if (getLog().isDebugEnabled()) {
-                        getLog().debug("Appending macro " + macro
-                                       + " to acinclude.m4,"
-                                       + " reading from " + macroUrl);
+                String macroFilename = macro.toLowerCase() + ".m4";
+                File macroFile = new File(m4Directory, macroFilename);
+                if (!macroFile.exists()) {
+                    URL macroUrl = findResource(macroArtifacts, macro + ".m4");
+                    if (macroUrl != null) {
+                        if (getLog().isDebugEnabled()) {
+                            getLog().debug("Copying macro " + macro
+                                           + " to m4/" + macroFilename
+                                           + ", reading from " + macroUrl);
+                        }
+                        FileUtils.copyURLToFile(macroUrl, macroFile);
                     }
-                    FileUtils.appendURLToFile(macroUrl, target);
                 }
             } finally {
                 alreadyProcessed.add(macro);
@@ -661,7 +664,7 @@ extends AbstractMojo {
             }
         }
         if (url == null) {
-            url = CompileMojo.class.getResource("m4/" + resourcePath);
+            url = CompileMojo.class.getResource("m4/" + resourcePath.toLowerCase());
         }
         return url;
     }
