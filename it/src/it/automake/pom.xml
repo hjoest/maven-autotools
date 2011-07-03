@@ -33,7 +33,7 @@
                 <artifactId>maven-autotools-plugin</artifactId>
                 <version>0.2-SNAPSHOT</version>
                 <configuration>
-                    <verbose>false</verbose>
+                    <verbose>true</verbose>
                 </configuration>
                 <extensions>true</extensions>
             </plugin>

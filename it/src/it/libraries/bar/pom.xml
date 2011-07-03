@@ -28,14 +28,6 @@
     <version>1.0</version>
     <packaging>jar-with-autotools</packaging>
     <name>Tiny Sample Program Binding to a Static Library</name>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>net.sf.maven-autotools</groupId>
-                <artifactId>maven-autotools-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
     <dependencies>
         <dependency>
             <groupId>net.sf.maven-autotools.tests</groupId>

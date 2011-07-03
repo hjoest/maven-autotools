@@ -35,7 +35,7 @@
                 <artifactId>maven-autotools-plugin</artifactId>
                 <version>0.2-SNAPSHOT</version>
                 <configuration>
-                    <verbose>false</verbose>
+                    <verbose>true</verbose>
                     <macroDependencies>
                         <macroDependency>
                             <groupId>net.sf.maven-autotools.tests</groupId>
