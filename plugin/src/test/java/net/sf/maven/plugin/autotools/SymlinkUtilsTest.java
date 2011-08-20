@@ -17,6 +17,10 @@
 
 package net.sf.maven.plugin.autotools;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -24,24 +28,26 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Test;
 
 
-public class SymlinkUtilsTest
-extends TestCase {
+public class SymlinkUtilsTest {
 
     private File root;
 
 
-    @Override
-    protected void setUp()
+    @Before
+    public void setUp()
     throws Exception {
         root = makeTestRoot();
     }
 
 
-    @Override
-    protected void tearDown()
+    @After
+    public void tearDown()
     throws Exception {
         if (root != null) {
             try {
@@ -54,7 +60,8 @@ extends TestCase {
     }
 
 
-    public void testCreateSimpleSymlink()
+    @Test
+    public void createSimpleSymlink()
     throws Exception {
         File targetDirectory = createDirectory(root, "a/b1/c1/d1/e1");
         File target = createFile(targetDirectory, "target.txt", "Simple");
@@ -68,7 +75,8 @@ extends TestCase {
     }
 
 
-    public void testCreateNastySymlink()
+    @Test
+    public void createNastySymlink()
     throws Exception {
         File targetDirectory = createDirectory(root, "a/x[$y]/(z)/-/u v/_");
         File target = createFile(targetDirectory, "target.txt", "Nasty");
@@ -82,7 +90,8 @@ extends TestCase {
     }
 
 
-    public void testCreateDotdotSymlink()
+    @Test
+    public void createDotdotSymlink()
     throws Exception {
         createDirectory(root, "a/x/y/z");
         File targetDirectory = createDirectory(root, "a/x/y/_");
@@ -98,12 +107,11 @@ extends TestCase {
     }
 
 
-    public void testCreateSymlinkWithUnicodeCharacters()
+    @Test
+    public void createSymlinkWithUnicodeCharacters()
     throws Exception {
-        if (Environment.getEnvironment().isWindows()) {
-            // FIXME: Found no way to fix this on Windows...
-            return;
-        }
+        // FIXME: Found no way to fix this on Windows...
+        Assume.assumeTrue(Environment.getEnvironment().isWindows() == false);
         File targetDirectory = createDirectory(root, "a/b/c/\u00f6/\u0153");
         File target = createFile(targetDirectory, "target.txt", "Woowoo");
         File linkDirectory = createDirectory(root, "a/b2/c2/d2/e2");
@@ -116,7 +124,8 @@ extends TestCase {
     }
 
 
-    public void testFailCreateSymlinkWithSingleQuote()
+    @Test
+    public void failCreateSymlinkWithSingleQuote()
     throws Exception {
         File linkDirectory = createDirectory(root, "a/b2/c2/d2");
         File target = new File(root, "a/single'quote.txt");

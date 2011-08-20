@@ -1,5 +1,7 @@
 package net.sf.maven.plugin.autotools;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -7,24 +9,25 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 
-public class FileUtilsTest
-extends TestCase {
+public class FileUtilsTest {
 
     private File root;
 
 
-    @Override
-    protected void setUp()
+    @Before
+    public void setUp()
     throws Exception {
         root = makeTestRoot();
     }
 
 
-    @Override
-    protected void tearDown()
+    @After
+    public void tearDown()
     throws Exception {
         if (root != null) {
             FileUtils.deleteDirectory(root);
@@ -33,7 +36,8 @@ extends TestCase {
     }
 
 
-    public void testCalculateRelativePath()
+    @Test
+    public void calculateRelativePath()
     throws Exception {
         File sampleDirectory = createDirectory(root, "a/b/c");
         File sample = createFile(sampleDirectory, "sample.txt", "Simple");
@@ -42,7 +46,8 @@ extends TestCase {
     }
 
 
-    public void testCalculateMoreComplicatedRelativePath()
+    @Test
+    public void calculateMoreComplicatedRelativePath()
     throws Exception {
         File sampleDirectory = createDirectory(root, "a/b/c");
         File parentDirectory = sampleDirectory.getParentFile();
