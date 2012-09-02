@@ -22,7 +22,7 @@
     <artifactId>autoconf</artifactId>
     <version>1.0</version>
     <packaging>jar-with-autotools</packaging>
-    <name>Start with autoconf</name>
+    <name>Test case: autoconf</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

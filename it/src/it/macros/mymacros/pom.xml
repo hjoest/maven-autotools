@@ -27,6 +27,6 @@
     <artifactId>mymacros</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
-    <name>Some sample M4 macros</name>
+    <name>Test case: some sample M4 macros</name>
 </project>
 

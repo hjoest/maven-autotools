@@ -27,7 +27,7 @@
     <artifactId>usingmacros</artifactId>
     <version>1.0</version>
     <packaging>jar-with-autotools</packaging>
-    <name>A Sample Project Using Additional M4 Macros</name>
+    <name>Test case: a sample project using additional M4 macros</name>
     <build>
         <plugins>
             <plugin>

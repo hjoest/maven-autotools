@@ -22,7 +22,7 @@
     <artifactId>autoscan</artifactId>
     <version>1.0</version>
     <packaging>jar-with-autotools</packaging>
-    <name>Start with autoscan</name>
+    <name>Test case: autoscan</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

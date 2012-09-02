@@ -22,7 +22,7 @@
     <artifactId>automake-jni</artifactId>
     <version>1.0</version>
     <packaging>jar-with-autotools</packaging>
-    <name>Start with automake, additionally generate JNI headers</name>
+    <name>Test case: automake, additionally generate JNI headers</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

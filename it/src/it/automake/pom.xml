@@ -22,7 +22,7 @@
     <artifactId>automake</artifactId>
     <version>1.0</version>
     <packaging>jar-with-autotools</packaging>
-    <name>Start with automake</name>
+    <name>Test case: automake</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

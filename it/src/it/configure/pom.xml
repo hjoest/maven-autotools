@@ -22,7 +22,7 @@
     <artifactId>configure</artifactId>
     <version>1.0</version>
     <packaging>jar-with-autotools</packaging>
-    <name>Start with configure</name>
+    <name>Test case: configure</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

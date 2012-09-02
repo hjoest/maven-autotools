@@ -27,7 +27,7 @@
     <artifactId>bar</artifactId>
     <version>1.0</version>
     <packaging>jar-with-autotools</packaging>
-    <name>Tiny Sample Program Binding to a Static Library</name>
+    <name>Test case: tiny sample program binds to a static library</name>
     <dependencies>
         <dependency>
             <groupId>net.sf.maven-autotools.tests</groupId>
