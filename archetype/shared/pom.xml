@@ -27,6 +27,6 @@
     <artifactId>maven-autotools-archetype-shared</artifactId>
     <packaging>jar</packaging>
     <name>maven-autotools-archetype-shared</name>
-    <url>http://maven-autotools.sourceforge.net/site/${pom.artifactId}</url>
+    <url>http://maven-autotools.sourceforge.net/site/${project.artifactId}</url>
 </project>
 

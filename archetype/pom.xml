@@ -27,7 +27,7 @@
     <artifactId>maven-autotools-archetype</artifactId>
     <packaging>pom</packaging>
     <name>maven-autotools-archetype</name>
-    <url>http://maven-autotools.sourceforge.net/site/${pom.artifactId}</url>
+    <url>http://maven-autotools.sourceforge.net/site/${project.artifactId}</url>
     <modules>
         <module>executable</module>
         <module>shared</module>

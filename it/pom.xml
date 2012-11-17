@@ -27,7 +27,7 @@
     <artifactId>maven-autotools-it</artifactId>
     <packaging>pom</packaging>
     <name>maven-autotools-it</name>
-    <url>http://maven-autotools.sourceforge.net/site/${pom.artifactId}</url>
+    <url>http://maven-autotools.sourceforge.net/site/${project.artifactId}</url>
     <build>
         <plugins>
             <plugin>
