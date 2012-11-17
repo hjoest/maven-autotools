@@ -32,6 +32,15 @@ AC_DEFUN([MVNAT_JAVA_JDK],
 
     if test x"${JDK_HOME}" = x
     then
+        ac_jdk_candidate=/System/Library/Frameworks/JavaVM.framework/Home
+        if test -e "${ac_jdk_candidate}"
+        then
+            JDK_HOME=${ac_jdk_candidate}
+        fi
+    fi
+
+    if test x"${JDK_HOME}" = x
+    then
         ac_jdk_favourite=$(
             for ac_jdk_places in \
                 /usr/local /usr/local/java /usr/local/lib \
@@ -67,13 +76,34 @@ AC_DEFUN([MVNAT_JAVA_JDK],
     AC_SUBST(JDK_HOME)
 
     ac_tmp_cppflags="$CPPFLAGS"
-    ac_jdk_os=`echo $build_os | sed 's,[-0-9].*,,' | sed 's,x-gnu,x,' | sed 's,cygwin,win32,'`
-    if test x$ac_jdk_os = xwin32; then
-        ac_jdk_include=`cygpath -u "$JDK_HOME"`/include
-    else
-        ac_jdk_include=$JDK_HOME/include
+    if test x"${ac_jdk_include}" = x
+    then
+        ac_jdk_include_mac="/System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers"
+        if test -e "${ac_jdk_include_mac}"
+        then
+            ac_jdk_include="${ac_jdk_include_mac}"
+            ac_jdk_os=
+        fi
     fi
-    CPPFLAGS="$ac_tmp_cppflags -I$ac_jdk_include -I$ac_jdk_include/$ac_jdk_os"
+    if test x"${ac_jdk_include}" = x
+    then
+        ac_jdk_os=`echo $build_os | sed 's,[-0-9].*,,' | sed 's,x-gnu,x,' | sed 's,cygwin,win32,'`
+        if test x$ac_jdk_os = xwin32
+        then
+            ac_jdk_include=`cygpath -u "${JDK_HOME}"`/include
+        else
+            ac_jdk_include=${JDK_HOME}/include
+        fi
+    fi
+    if test -e "${ac_jdk_include}"
+    then
+        if test x"${ac_jdk_os}" = x
+        then
+            CPPFLAGS="$ac_tmp_cppflags -I${ac_jdk_include}"
+        else
+            CPPFLAGS="$ac_tmp_cppflags -I${ac_jdk_include} -I${ac_jdk_include}/${ac_jdk_os}"
+        fi
+    fi
     AC_TRY_COMPILE([#include <jni.h>],[jlong conf_dummy;],[
         ac_tmp_cppflags="$CPPFLAGS"
     ],[
