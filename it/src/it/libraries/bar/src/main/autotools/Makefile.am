@@ -1,6 +1,7 @@
 bin_PROGRAMS = bar
 bar_SOURCES = bar.c
-INCLUDES = -I @srcdir@
+bar_LDADD = -lfoo
+AM_CPPFLAGS = -I @srcdir@
 AM_CFLAGS = -Wall -g
-AM_LDFLAGS = -g -lfoo
+AM_LDFLAGS = -g
 ACLOCAL_AMFLAGS = -I m4
