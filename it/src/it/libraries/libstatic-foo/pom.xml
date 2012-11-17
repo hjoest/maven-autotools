@@ -17,31 +17,28 @@
   limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>net.sf.maven-autotools.tests</groupId>
+        <artifactId>libraries</artifactId>
+        <version>1.0</version>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.sf.maven-autotools.tests</groupId>
-    <artifactId>libraries</artifactId>
+    <artifactId>libstatic-foo</artifactId>
     <version>1.0</version>
-    <packaging>pom</packaging>
-    <name>Test case: dealing with libraries</name>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <packaging>jar-with-autotools</packaging>
+    <name>Test case: static sample library</name>
     <build>
         <plugins>
             <plugin>
                 <groupId>net.sf.maven-autotools</groupId>
                 <artifactId>maven-autotools-plugin</artifactId>
-                <version>0.2-SNAPSHOT</version>
                 <configuration>
                     <verbose>true</verbose>
+                    <mingw>true</mingw>
                 </configuration>
-                <extensions>true</extensions>
             </plugin>
         </plugins>
     </build>
-    <modules>
-        <module>libstatic-foo</module>
-        <module>libshared-foo</module>
-        <module>bar</module>
-    </modules>
 </project>
+

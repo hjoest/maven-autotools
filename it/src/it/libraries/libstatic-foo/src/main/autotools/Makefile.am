@@ -1,0 +1,9 @@
+lib_LTLIBRARIES = libstatic-foo.la
+libstatic_foo_la_SOURCES = static-foo.c
+libstatic_foo_la_LDFLAGS = -release 1.0 -no-undefined
+include_HEADERS = static-foo.h
+AM_CPPFLAGS = -I @srcdir@
+AM_CFLAGS = -Wall -g
+AM_LDFLAGS = -g
+AM_LIBTOOLFLAGS = --silent
+ACLOCAL_AMFLAGS = -I m4

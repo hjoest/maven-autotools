@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef __FOO_FOO_H
-#define __FOO_FOO_H
+#ifndef __SHARED_FOO_H
+#define __SHARED_FOO_H
 
-extern char *foo_hello(char *, int);
+typedef int (*shared_foo_t)(char *, int);
+extern int shared_foo(char *, int);
 
 #endif
-

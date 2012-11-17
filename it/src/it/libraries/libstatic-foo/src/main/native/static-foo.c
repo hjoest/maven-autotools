@@ -18,23 +18,22 @@
 #endif
 
 #ifdef HAVE_STRING_H
-#include "string.h"
+#include <string.h>
 #endif
 
-#include "foo.h"
+#include "static-foo.h"
 
 #define MIN(a,b) ((a)>(b)?(b):(a))
 
 static const char *hello = "Hello";
 
-char *
-foo_hello(char *s, int n)
+int
+static_foo(char *s, int n)
 {
     int p;
     int w = MIN(n < 0 ? strlen(s) : n, strlen(hello));
     for (p = 0; p < w && s[p]; ++p) {
         s[p] = hello[p];
     }
-    return s;
+    return p;
 }
-

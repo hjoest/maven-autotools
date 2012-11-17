@@ -1,13 +1,13 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT([foo],[1.0])
+AC_INIT([static-foo],[1.0])
 AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE
 
 # Minimum Autoconf version required.
-AC_PREREQ(2.59)
+AC_PREREQ(2.61)
 
 # Where to generate output; srcdir location.
-AC_CONFIG_SRCDIR([foo.c])
+AC_CONFIG_SRCDIR([static-foo.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 

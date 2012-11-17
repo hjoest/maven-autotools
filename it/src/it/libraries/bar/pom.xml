@@ -31,7 +31,13 @@
     <dependencies>
         <dependency>
             <groupId>net.sf.maven-autotools.tests</groupId>
-            <artifactId>libfoo</artifactId>
+            <artifactId>libstatic-foo</artifactId>
+            <version>1.0</version>
+            <type>jar-with-autotools</type>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.maven-autotools.tests</groupId>
+            <artifactId>libshared-foo</artifactId>
             <version>1.0</version>
             <type>jar-with-autotools</type>
         </dependency>

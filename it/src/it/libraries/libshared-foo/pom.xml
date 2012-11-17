@@ -24,9 +24,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.sf.maven-autotools.tests</groupId>
-    <artifactId>libfoo</artifactId>
+    <artifactId>libshared-foo</artifactId>
     <version>1.0</version>
     <packaging>jar-with-autotools</packaging>
-    <name>Static Sample Library</name>
+    <name>Test case: shared sample library</name>
 </project>
 

@@ -1,0 +1,9 @@
+lib_LTLIBRARIES = libshared-foo.la
+libshared_foo_la_SOURCES = shared-foo.c
+libshared_foo_la_LDFLAGS = -release 1.0 -no-undefined
+include_HEADERS = shared-foo.h
+AM_CPPFLAGS = -I @srcdir@
+AM_CFLAGS = -Wall -g
+AM_LDFLAGS = -g -module -no-undefined -version-info 1:0:0
+AM_LIBTOOLFLAGS = --silent
+ACLOCAL_AMFLAGS = -I m4
