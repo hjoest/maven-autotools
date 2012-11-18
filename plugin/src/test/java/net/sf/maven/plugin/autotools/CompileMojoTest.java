@@ -199,6 +199,48 @@ extends AbstractMojoTestCase {
     }
 
 
+    public void testPostinstall()
+    throws Exception {
+        String name = "postinstall";
+        CompileMojo mojo = createCompileMojo(name);
+        File installDirectory =
+            getTestFile("target/test-harness/" + name + "/install");
+        File autotoolsDirectory = findSourceDirectory(name, "autotools");
+        String postinstallScript =
+            new File(autotoolsDirectory, "postinstall.sh").getAbsolutePath();
+        Environment env = Environment.getEnvironment();
+        String host =
+            env.getSystemArchitecture() + "/" + env.getOperatingSystem();
+        String[][] commands = {
+                { "sh", "-c", "aclocal" },
+                { "sh", "-c", "autoheader" },
+                { "sh", "-c", CompileMojo.command("libtoolize") + " -c -f --quiet" },
+                { "sh", "-c", "automake -c -f -a -W none" },
+                { "sh", "-c", "autoconf" },
+                { "sh", "-c",
+                    "../configure/configure"
+                    + " --silent"
+                    + " --bindir=\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "bin/" + host)) + "\""
+                    + " --libdir=\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "lib/" + host)) + "\""
+                    + " --includedir=\""
+                    + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, "include")) + "\""
+                },
+                { "sh", "-c", "make" },
+                { "sh", "-c", "make install" },
+                { "sh", postinstallScript}
+        };
+        setupExpectations(name, commands);
+        replay(exec);
+        mojo.execute();
+        verify(exec);
+    }
+
+
     private CompileMojo createCompileMojo(String testCase)
     throws Exception {
         CompileMojo mojo = new CompileMojo();
@@ -211,9 +253,14 @@ extends AbstractMojoTestCase {
         setVariableValueToObject(
                 mojo, "nativeMainDirectory",
                 findSourceDirectory(testCase, "native"));
+        File autotoolsDirectory = findSourceDirectory(testCase, "autotools");
         setVariableValueToObject(
                 mojo, "autotoolsMainDirectory",
-                findSourceDirectory(testCase, "autotools"));
+                autotoolsDirectory
+                );
+        setVariableValueToObject(
+                mojo, "postInstallScript",
+                new File(autotoolsDirectory, "postinstall.sh"));
         setVariableValueToObject(mojo, "exec", exec);
         mojo.setLog(new SilentLog());
         return mojo;
@@ -229,17 +276,21 @@ extends AbstractMojoTestCase {
             getTestFile("target/test-harness/" + name + "/configure");
         File workingDirectory =
             getTestFile("target/test-harness/" + name + "/working");
-        int p = 0;
+        File installDirectory =
+            getTestFile("target/test-harness/" + name + "/install");
         for (String[] command : commands) {
             File directory = configureDirectory;
-            if (p >= commands.length - 3) {
+            if (command[1].endsWith("/postinstall.sh")) {
+                directory = installDirectory;
+            } else if (command[2].startsWith("../configure/configure")
+                || command[2].equals("make")
+                || command[2].equals("make install")) {
                 directory = workingDirectory;
             }
             exec.execProcess(
                     aryEq(command),
                     (Map<String, String>) anyObject(),
                     eq(directory));
-            ++p;
         }
     }
 

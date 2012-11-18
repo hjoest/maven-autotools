@@ -114,6 +114,15 @@ extends AbstractMojo {
     private boolean verbose;
 
     /**
+     * Unix shell script for arbitrary post processing after 'make install'.
+     * If it exists and if it is executable, it will be run in the platform
+     * specific install directory, e.g. <code>target/autotools/install/</code>.
+     *
+     * @parameter expression="${basedir}/src/main/autotools/postinstall.sh"
+     */
+    private File postInstallScript;
+
+    /**
      * Artifacts containing additional autoconf macros.
      *
      * @parameter
@@ -244,6 +253,7 @@ extends AbstractMojo {
         prepareBuild();
         configure();
         make();
+        postInstall();
     }
 
 
@@ -371,6 +381,26 @@ extends AbstractMojo {
     }
 
 
+    private void postInstall()
+    throws MojoExecutionException {
+        if (postInstallScript == null || !postInstallScript.exists()) {
+            getLog().info("No post install script.");
+            return;
+        }
+        try {
+            String[] postInstallCommand = {
+                    "sh", postInstallScript.getAbsolutePath()
+            };
+            exec.execProcess(postInstallCommand,
+                             null,
+                             installDirectory);
+        } catch (Exception ex) {
+            throw new MojoExecutionException("Failed to run \""
+                                             + postInstallScript + "\"", ex);
+        }
+    }
+
+
     /**
      * This is a hack necessary for Windows to move DLLs to the right
      * location after 'make install'.
@@ -422,13 +452,13 @@ extends AbstractMojo {
                 createEmptyIfDoesNotExist(configureDirectory, "ChangeLog");
                 createEmptyIfDoesNotExist(configureDirectory, "COPYING");
             }
-                        if (!FileUtils.fileExists(configureDirectory, "configure")) {
-                                if (autoreconf) {
-                                        commands.add("autoreconf --install" + (verbose ? " --verbose" : ""));
-                                } else {
-                                        commands.add("autoconf");
-                                }
-                        }
+            if (!FileUtils.fileExists(configureDirectory, "configure")) {
+                if (autoreconf) {
+                    commands.add("autoreconf --install" + (verbose ? " --verbose" : ""));
+                } else {
+                    commands.add("autoconf");
+                }
+            }
             if (verbose && getLog().isInfoEnabled()) {
                 getLog().info("cd '" + configureDirectory + "'");
             }
@@ -449,13 +479,6 @@ extends AbstractMojo {
                 autoscanPost.delete();
             }
         }
-    }
-
-
-    static String command(final String command) {
-        final String envVar = "MAVEN_AUTOTOOLS_" + command.toUpperCase();
-        final String envValue = System.getenv(envVar);
-        return StringUtils.isEmpty(envValue) ? command : envValue;
     }
 
 
@@ -535,11 +558,6 @@ extends AbstractMojo {
         mergeEnvVar(env, "LDFLAGS", "-L"
                          + FileUtils.fixAbsolutePathForUnixShell(libraries));
         return env;
-    }
-
-
-    private void mergeEnvVar(Map<String,String> env, String key, String value) {
-        env.put(key, env.containsKey(key) ? env.get(key) + " " + value : value);
     }
 
 
@@ -721,5 +739,19 @@ extends AbstractMojo {
         exec.setStdout(sla.getStdout());
         exec.setStderr(sla.getStderr());
     }
-}
 
+
+    static String command(final String command) {
+        final String envVar = "MAVEN_AUTOTOOLS_" + command.toUpperCase();
+        final String envValue = System.getenv(envVar);
+        return StringUtils.isEmpty(envValue) ? command : envValue;
+    }
+
+
+    private static void mergeEnvVar(Map<String,String> env,
+                             String key,
+                             String value) {
+        env.put(key, env.containsKey(key) ? env.get(key) + " " + value : value);
+    }
+
+}
