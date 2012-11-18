@@ -145,41 +145,40 @@ extends AbstractMojo {
      */
     private org.apache.maven.project.MavenProject mavenProject;
 
-    
+
     // TODO: this should really be determined automatically from AC_CONFIG_MACRO_DIR in configure.ac
-	/**
-	 * The name of the sub-directory of {@link #autotoolsMainDirectory} in which
-	 * m4 macros reside. Note that ATM this setting needs to be consistent with
-	 * AC_CONFIG_MACRO_DIR in configure.ac and -I flags in ACLOCAL_AMFLAGS in
-	 * Makefile.am.
-	 * 
-	 * @parameter default-value="m4" 
-	 */
-	private String macroDirectoryName;
+    /**
+     * The name of the sub-directory of {@link #autotoolsMainDirectory} in which
+     * m4 macros reside. Note that ATM this setting needs to be consistent with
+     * AC_CONFIG_MACRO_DIR in configure.ac and -I flags in ACLOCAL_AMFLAGS in
+     * Makefile.am.
+     *
+     * @parameter default-value="m4"
+     */
+    private String macroDirectoryName;
 
-	/**
-	 * Whether to use 'autoreconf'. If false, a more brittle, hard-coded
-	 * sequence of aclocal, autoheader, libtoolize, automake and autoconf will
-	 * be used.
-	 * 
-	 * @parameter default-value="true"
-	 */
-	private boolean autoreconf;
-	
-	
-	/**
-	 * Additional parameters to pass to the ./configure script. Can't use --bindir, --libdir or --includedir.
-	 * 
-	 * @parameter
-	 */
-	private String configureArgs;
+    /**
+     * Whether to use 'autoreconf'. If false, a more brittle, hard-coded
+     * sequence of aclocal, autoheader, libtoolize, automake and autoconf will
+     * be used.
+     *
+     * @parameter default-value="true"
+     */
+    private boolean autoreconf;
 
-        /**
-         * Compile for MinGW host on Windows.
-         *
-         * @parameter default-value="false"
-         */
-        private String mingw;
+    /**
+     * Additional parameters to pass to the ./configure script. Can't use --bindir, --libdir or --includedir.
+     *
+     * @parameter
+     */
+    private String configureArgs;
+
+    /**
+     * Compile for MinGW host on Windows.
+     *
+     * @parameter default-value="false"
+     */
+    private String mingw;
 
     /**
      * Allows to provide alternative names for target platforms, particularly
@@ -197,12 +196,12 @@ extends AbstractMojo {
     private Map<String,String> platformMapping;
 
     /**
-	 * Additional environment variables to set before running configure.
-	 * 
-	 * @parameter
-	 */
-	private Map<String,String> configureEnv;
-	
+     * Additional environment variables to set before running configure.
+     *
+     * @parameter
+     */
+    private Map<String,String> configureEnv;
+
     /**
      * Used to run child processes.
      */
@@ -276,12 +275,11 @@ extends AbstractMojo {
     }
 
 
-	private void makeM4Directory()
-	{
-		if( ! FileUtils.fileExists( configureDirectory, macroDirectoryName ) ) {
-			new File( configureDirectory, macroDirectoryName ).mkdir();
-		}
-	}
+    private void makeM4Directory() {
+        if (!FileUtils.fileExists(configureDirectory, macroDirectoryName)) {
+            new File(configureDirectory, macroDirectoryName).mkdir();
+        }
+    }
 
 
     private void configure()
@@ -372,7 +370,7 @@ extends AbstractMojo {
         }
     }
 
-    
+
     /**
      * This is a hack necessary for Windows to move DLLs to the right
      * location after 'make install'.
@@ -412,25 +410,25 @@ extends AbstractMojo {
             }
             if (!FileUtils.fileExists(configureDirectory, "configure.in")
                   && !FileUtils.fileExists(configureDirectory, "Makefile.in")) {
-            	if( ! autoreconf ) {
-	                commands.add("aclocal");
-	                commands.add("autoheader");
-	                commands.add( command( "libtoolize" ) + " -c -f" + (verbose ? "" : " --quiet"));
-	                commands.add("automake -c -f -a" + (verbose ? "" : " -W none"));
-            	}
+                if (!autoreconf) {
+                        commands.add("aclocal");
+                        commands.add("autoheader");
+                        commands.add(command("libtoolize") + " -c -f" + (verbose ? "" : " --quiet"));
+                        commands.add("automake -c -f -a" + (verbose ? "" : " -W none"));
+                }
                 createEmptyIfDoesNotExist(configureDirectory, "NEWS");
                 createEmptyIfDoesNotExist(configureDirectory, "README");
                 createEmptyIfDoesNotExist(configureDirectory, "AUTHORS");
                 createEmptyIfDoesNotExist(configureDirectory, "ChangeLog");
                 createEmptyIfDoesNotExist(configureDirectory, "COPYING");
             }
-			if( ! FileUtils.fileExists( configureDirectory, "configure" ) ) {
-				if( autoreconf ) {
-					commands.add( "autoreconf --install" + ( verbose ? " --verbose" : "" ) );
-				} else {
-					commands.add( "autoconf" );
-				}
-			}
+                        if (!FileUtils.fileExists(configureDirectory, "configure")) {
+                                if (autoreconf) {
+                                        commands.add("autoreconf --install" + (verbose ? " --verbose" : ""));
+                                } else {
+                                        commands.add("autoconf");
+                                }
+                        }
             if (verbose && getLog().isInfoEnabled()) {
                 getLog().info("cd '" + configureDirectory + "'");
             }
@@ -454,12 +452,11 @@ extends AbstractMojo {
     }
 
 
-	static String command( final String command )
-	{
-		final String envVar = "MAVEN_AUTOTOOLS_" + command.toUpperCase();
-		final String envValue = System.getenv( envVar );
-		return StringUtils.isEmpty( envValue ) ? command : envValue;
-	}
+    static String command(final String command) {
+        final String envVar = "MAVEN_AUTOTOOLS_" + command.toUpperCase();
+        final String envValue = System.getenv(envVar);
+        return StringUtils.isEmpty(envValue) ? command : envValue;
+    }
 
 
     private File extractAutoscanScript(String scriptName)
@@ -524,22 +521,27 @@ extends AbstractMojo {
      * @return the environment
      * @throws IOException if an I/O error occurs
      */
-	private Map<String,String> makeConfigureEnvironment() throws IOException
-	{
-		File includes = new File( dependenciesDirectory, "include" );
-		File libraries = new File( dependenciesDirectory, "lib" );
-		libraries = makeOsArchDirectory( libraries );
-		Map<String,String> env = new HashMap<String,String>( System.getenv() );
-		if( configureEnv != null ) env.putAll( configureEnv );
-		mergeEnvVar( env, "CFLAGS", "-I" + FileUtils.fixAbsolutePathForUnixShell( includes ) );
-		mergeEnvVar( env, "LDFLAGS", "-L" + FileUtils.fixAbsolutePathForUnixShell( libraries ) );
-		return env;
-	}
+    private Map<String,String> makeConfigureEnvironment()
+    throws IOException {
+        File includes = new File(dependenciesDirectory, "include");
+        File libraries = new File(dependenciesDirectory, "lib");
+        libraries = makeOsArchDirectory(libraries);
+        Map<String,String> env = new HashMap<String,String>(System.getenv());
+        if (configureEnv != null) {
+            env.putAll(configureEnv);
+        }
+        mergeEnvVar(env, "CFLAGS", "-I"
+                         + FileUtils.fixAbsolutePathForUnixShell(includes));
+        mergeEnvVar(env, "LDFLAGS", "-L"
+                         + FileUtils.fixAbsolutePathForUnixShell(libraries));
+        return env;
+    }
 
-	private void mergeEnvVar( Map<String,String> env, final String key, final String value )
-	{
-		env.put( key, env.containsKey( key ) ? env.get( key ) + " " + value : value );
-	}
+
+    private void mergeEnvVar(Map<String,String> env, String key, String value) {
+        env.put(key, env.containsKey(key) ? env.get(key) + " " + value : value);
+    }
+
 
     /**
      * Appends system architecture and operating system name to
@@ -568,7 +570,9 @@ extends AbstractMojo {
             return;
         }
         for (File file : files) {
-			if( file.getName().startsWith( "." ) ) continue; // TODO: this might be to broad
+            if (file.getName().startsWith(".")) {
+                continue; // TODO: this might be to broad
+            }
             if (file.isDirectory()) {
                 File childDestinationDirectory =
                       new File(destinationDirectory, file.getName());

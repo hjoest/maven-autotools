@@ -15,8 +15,8 @@
         <artifactId>maven-autotools-plugin</artifactId>
         <configuration>
             <verbose>false</verbose>
-            <cumulativeHeader>jni-${artifactId}.h</cumulativeHeader>
             <mingw>true</mingw>
+            <cumulativeHeader>jni-${artifactId}.h</cumulativeHeader>
         </configuration>
         <extensions>true</extensions>
       </plugin>

@@ -122,7 +122,7 @@ extends AbstractMojo {
             getLog().info("Skipping repeated execution");
             return;
         }
-        // Nudge archiver to use the mode of the input file system 
+        // Nudge archiver to use the mode of the input file system
         jarArchiver.setDefaultFileMode( 0 );
         jarArchiver.setDefaultDirectoryMode( 0 );
         File jarFile = createArchive();

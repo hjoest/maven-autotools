@@ -29,4 +29,3 @@
     <packaging>jar-with-autotools</packaging>
     <name>Test case: shared sample library</name>
 </project>
-

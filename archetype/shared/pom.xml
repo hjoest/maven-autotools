@@ -29,4 +29,3 @@
     <name>maven-autotools-archetype-shared</name>
     <url>http://maven-autotools.sourceforge.net/site/${project.artifactId}</url>
 </project>
-

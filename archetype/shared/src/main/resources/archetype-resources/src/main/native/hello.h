@@ -4,4 +4,3 @@
 extern const char *greeting(void);
 
 #endif
-
