@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2004-2010 Emmanuel Venisse <evenisse@apache.org>
- * Copyright (C) 2006-2010 Holger Joest <hjoest@users.sourceforge.net>
- * Copyright (C) 2010 Hannes Schmidt <hannes.schmidt@gmail.com>
+ * Copyright (C) 2004-2013 Emmanuel Venisse <evenisse@apache.org>
+ * Copyright (C) 2006-2013 Holger Joest <holger@joest.org>
+ * Copyright (C) 2010-2013 Hannes Schmidt <hannes.schmidt@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
  * written by <a href="evenisse@apache.org">Emmanuel Venisse</a>.
  *
  * @author <a href="evenisse@apache.org">Emmanuel Venisse</a>
- * @author <a href="hjoest@users.sourceforge.net">Holger Joest</a>
+ * @author <a href="holger@joest.org">Holger Joest</a>
  * @author <a href="hannes.schmidt@gmail.com">Hannes Schmidt</a>
  *
  * @goal jar
