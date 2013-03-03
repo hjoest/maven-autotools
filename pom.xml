@@ -79,9 +79,8 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:svn:http://maven-autotools.svn.sourceforge.net/svnroot/maven-autotools/trunk</connection>
-        <developerConnection>scm:svn:https://maven-autotools.svn.sourceforge.net/svnroot/maven-autotools/trunk</developerConnection>
-        <url>http://svn.sourceforge.net/viewvc/maven-autotools/trunk</url>
+        <url>http://maven-autotools.git.sourceforge.net/git/gitweb.cgi?p=maven-autotools/maven-autotools;a=summary</url>
+        <connection>scm:git://maven-autotools.git.sourceforge.net/gitroot/maven-autotools/maven-autotools</connection>
     </scm>
     <profiles>
         <profile>
