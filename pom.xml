@@ -23,7 +23,7 @@
     <packaging>pom</packaging>
     <name>maven-autotools</name>
     <description>The Maven Autotools Plugin runs GNU Autotools from a Maven build.</description>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.2</version>
     <url>http://maven-autotools.sourceforge.net</url>
     <inceptionYear>2006</inceptionYear>
     <properties>

@@ -13,6 +13,7 @@
       <plugin>
         <groupId>net.sf.maven-autotools</groupId>
         <artifactId>maven-autotools-plugin</artifactId>
+        <version>0.2</version>
         <configuration>
             <verbose>false</verbose>
             <mingw>true</mingw>

@@ -4,13 +4,13 @@
         <archetype>
             <groupId>net.sf.maven-autotools</groupId>
             <artifactId>maven-autotools-archetype-executable</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>0.2</version>
             <description>Autotools archetype for creating an executable</description>
         </archetype>
         <archetype>
             <groupId>net.sf.maven-autotools</groupId>
             <artifactId>maven-autotools-archetype-shared</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>0.2</version>
             <description>Autotools archetype for creating a shared library (with JNI)</description>
         </archetype>
     </archetypes>

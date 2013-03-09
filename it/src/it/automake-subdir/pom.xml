@@ -31,7 +31,7 @@
             <plugin>
                 <groupId>net.sf.maven-autotools</groupId>
                 <artifactId>maven-autotools-plugin</artifactId>
-                <version>0.2-SNAPSHOT</version>
+                <version>0.2</version>
                 <configuration>
                     <verbose>true</verbose>
                 </configuration>
