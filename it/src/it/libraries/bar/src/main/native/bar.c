@@ -65,8 +65,8 @@ make_libshared_path(char *path, char *argv0)
 {
     char chopped_os[FILENAME_MAX + 1];
     char chopped_arch[FILENAME_MAX + 1];
-    char *rchop[] = { NULL, chopped_os, chopped_arch, NULL, NULL };
-    char *rappend[] = { "/dependencies", "/lib", chopped_arch, chopped_os };
+    char *rchop[] = { NULL, NULL, chopped_arch, chopped_os, NULL };
+    char *rappend[] = { "/dependencies", chopped_os, chopped_arch, "/lib" };
     int p;
 
     strncpy(path, argv0, PATH_MAX);

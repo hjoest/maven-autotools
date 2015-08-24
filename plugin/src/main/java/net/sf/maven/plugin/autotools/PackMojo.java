@@ -21,14 +21,19 @@ package net.sf.maven.plugin.autotools;
 import java.io.File;
 
 import org.apache.maven.archiver.MavenArchiveConfiguration;
-import org.apache.maven.archiver.MavenArchiver;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DefaultArtifact;
+import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
-import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
-
+import org.codehaus.plexus.archiver.tar.TarArchiver;
 
 /**
  * Loosely based on {@see org.apache.maven.plugin.jar.AbstractJarMojo}
@@ -38,11 +43,10 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
  * @author <a href="holger@joest.org">Holger Joest</a>
  * @author <a href="hannes.schmidt@gmail.com">Hannes Schmidt</a>
  *
- * @goal jar
- * @phase package
- * @requiresProject
- * @description packing of native artifacts in a jar
  */
+@Mojo(name = "jar", 
+   defaultPhase = LifecyclePhase.PACKAGE,
+   requiresProject = true)
 public final class PackMojo
 extends AbstractMojo {
 
@@ -53,54 +57,47 @@ extends AbstractMojo {
 
     /**
      * Directory containing the generated JAR.
-     *
-     * @parameter expression="${project.build.directory}"
-     * @required
      */
+    @Parameter(defaultValue = "${project.build.directory}", required = true)
     private File outputDirectory;
 
     /**
      * The install directory.
-     *
-     * @parameter expression="${project.build.directory}/autotools/install"
      */
+    @Parameter(defaultValue = "${project.build.directory}/autotools/install")
     private File installDirectory;
 
     /**
      * Name of the generated JAR.
-     *
-     * @parameter alias="jarName" expression="${project.build.finalName}"
-     * @required
      */
+    @Parameter(alias = "jarName",  defaultValue = "${project.build.finalName}", required = true)
     private String finalName;
 
     /**
-     * The Jar archiver.
-     *
-     * @component role="org.codehaus.plexus.archiver.Archiver" roleHint="jar"
-     * @required
+     * The Tar archiver.
      */
-    private JarArchiver jarArchiver;
+    @Component(role = org.codehaus.plexus.archiver.Archiver.class, hint = "tar")
+    private TarArchiver tarArchiver;
 
     /**
      * The maven project.
-     *
-     * @parameter expression="${project}"
-     * @required
-     * @readonly
      */
+    @Parameter(defaultValue = "${project}", required = true, readonly = true)
     private MavenProject project;
+    
+    @Parameter
+    private Environment environment;
 
     /**
      * @component
      */
+    @Component
     private MavenProjectHelper projectHelper;
 
     /**
      * The maven archive configuration to use.
-     *
-     * @parameter
      */
+    @Parameter
     private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
 
     /**
@@ -108,6 +105,9 @@ extends AbstractMojo {
      * same configuration.
      */
     private RepeatedExecutions repeated = new RepeatedExecutions();
+
+    @Component( role = org.apache.maven.artifact.handler.ArtifactHandler.class, hint = "tar.gz" )
+    private ArtifactHandler tarArtifactHandler;
 
 
     /**
@@ -123,21 +123,35 @@ extends AbstractMojo {
             return;
         }
         // Nudge archiver to use the mode of the input file system
-        jarArchiver.setDefaultFileMode( 0 );
-        jarArchiver.setDefaultDirectoryMode( 0 );
-        File jarFile = createArchive();
-        Environment environment = Environment.getEnvironment();
-        String classifier = environment.getClassifier();
-        projectHelper.attachArtifact(project, "jar", classifier, jarFile);
+        tarArchiver.setDefaultFileMode( 0 );
+        tarArchiver.setDefaultDirectoryMode( 0 );
+        File tarFile = createArchive();
+        String classifier = getEnvironment().getClassifier();
+        if(project.getPackaging().equals("tar.gz")) {
+            Artifact tarArtifact = new DefaultArtifact( project.getGroupId(), project.getArtifactId(),
+                                       project.getVersion(), "compile",
+                                       "tar.gz", getEnvironment().getClassifier(),
+                                       tarArtifactHandler );
+            tarArtifact.setFile(tarFile);
+            project.setArtifact(tarArtifact);
+        } else {
+            projectHelper.attachArtifact(project, "tar.gz", classifier, tarFile);
+        }
     }
-
+    
+    private Environment getEnvironment() {
+       if(environment==null) {
+          environment = new Environment();
+       }
+       return environment;
+    }
 
     /**
      * The root directory of the jar.
      * @return the root directory
      */
     private File getContentDirectory() {
-        return installDirectory;
+        return getEnvironment().makeOsArchDirectory(installDirectory);
     }
 
 
@@ -149,43 +163,37 @@ extends AbstractMojo {
      */
     private File createArchive()
     throws MojoExecutionException {
-        Environment environment = Environment.getEnvironment();
-        File jarFile =
-            makeJarFile(outputDirectory, finalName,
-                        environment.getClassifier());
-        MavenArchiver archiver = new MavenArchiver();
-        archiver.setArchiver(jarArchiver);
-        archiver.setOutputFile(jarFile);
+        File tarFile =
+            makeTarFile(outputDirectory, finalName, getEnvironment().getClassifier());
+        TarArchiver.TarCompressionMethod mode = new TarArchiver.TarCompressionMethod();
+        mode.setValue("gzip");
+        tarArchiver.setCompression(mode);
+        tarArchiver.setDestFile(tarFile);
         try {
             File contentDirectory = getContentDirectory();
             if (!contentDirectory.exists()) {
-                getLog().warn(
-                        "JAR will be empty"
-                        + " - no content was marked for inclusion!");
+                getLog().warn("TAR will be empty - no content was marked for inclusion!");
             } else {
-                archiver.getArchiver().addDirectory(
-                        contentDirectory, INCLUDES, EXCLUDES
-                );
+                tarArchiver.addDirectory(contentDirectory, INCLUDES, EXCLUDES);
             }
-            archiver.createArchive(project, archive);
-            return jarFile;
+            tarArchiver.createArchive();
+            return tarFile;
         } catch (Exception ex) {
-            throw new MojoExecutionException("Error creating JAR archive", ex);
+            throw new MojoExecutionException("Error creating TAR archive", ex);
         }
     }
 
 
     /**
-     * Constructs the file name of the java archive.
+     * Constructs the file name of the archive.
      *
      * @param basedir the base directory
      * @param finalName the artifact's final name
      * @param classifier the attachment classifier
      * @return the file name
      */
-    private static File makeJarFile(File basedir,
-                                    String finalName, String classifier) {
-        return new File(basedir, finalName + "-" + classifier + ".jar");
+    private static File makeTarFile(File basedir, String finalName, String classifier) {
+        return new File(basedir, finalName + "-" + classifier + ".tar.gz");
     }
 
 }

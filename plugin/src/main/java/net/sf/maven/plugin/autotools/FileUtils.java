@@ -16,6 +16,8 @@
 
 package net.sf.maven.plugin.autotools;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -23,7 +25,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.nio.charset.Charset;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.io.Files;
+import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.IOUtil;
 
 
@@ -34,7 +41,7 @@ extends org.codehaus.plexus.util.FileUtils {
     }
 
 
-    public static boolean fileExists(File directory, String name) {
+    public static boolean fileExists(@Nonnull File directory, @Nonnull String name) {
         try {
             File file = SymlinkUtils.resolveSymlink(new File(directory, name));
             return file.exists();
@@ -44,7 +51,7 @@ extends org.codehaus.plexus.util.FileUtils {
     }
 
 
-    public static void appendURLToFile(URL source, File destination)
+    public static void appendURLToFile(@Nonnull URL source, @Nonnull File destination)
     throws IOException {
         File temp = destination;
         int c = 1;
@@ -70,8 +77,8 @@ extends org.codehaus.plexus.util.FileUtils {
     }
 
 
-    public static boolean isOlderThanAnyOf(File directory, String name,
-                                           String... others) {
+    public static boolean isOlderThanAnyOf(@Nonnull File directory, @Nonnull String name,
+          @Nonnull String... others) {
         File file = new File(directory, name);
         if (!file.exists()) {
             return true;
@@ -87,7 +94,7 @@ extends org.codehaus.plexus.util.FileUtils {
     }
 
 
-    public static String calculateRelativePath(File base, File target)
+    public static String calculateRelativePath(@Nonnull File base, @Nonnull File target)
     throws IOException {
         String targetPath =
             target.getAbsolutePath().replace(File.separatorChar, '/');
@@ -108,7 +115,7 @@ extends org.codehaus.plexus.util.FileUtils {
             bp = p;
         }
         if (bp == 0 || bp > targetPath.length()) {
-            if (Environment.getEnvironment().isWindows()) {
+            if (Environment.getBuildEnvironment().isWindows()) {
                 return fixAbsolutePathForUnixShell(targetPath);
             }
             return targetPath;
@@ -131,7 +138,7 @@ extends org.codehaus.plexus.util.FileUtils {
      * @param file a file
      * @return the fixed absolute path
      */
-    public static String fixAbsolutePathForUnixShell(File file) {
+    public static String fixAbsolutePathForUnixShell(@Nonnull File file) {
         return fixAbsolutePathForUnixShell(file.getAbsolutePath());
     }
 
@@ -142,8 +149,8 @@ extends org.codehaus.plexus.util.FileUtils {
      * @param path an absolute path
      * @return the fixed path
      */
-    public static String fixAbsolutePathForUnixShell(String path) {
-        if (Environment.getEnvironment().isWindows()
+    public static String fixAbsolutePathForUnixShell(@Nonnull String path) {
+        if (Environment.getBuildEnvironment().isWindows()
                 && path.length() > 2
                 && path.charAt(1) == ':') {
             path = "/cygdrive/"
@@ -154,5 +161,21 @@ extends org.codehaus.plexus.util.FileUtils {
         return path;
     }
 
+   /**
+    * Replace all occurences, in <code>files</code>, of <code>regex</code> with <code>replace</code>
+    * @param regex    the original text to replace
+    * @param replace    the placeholder
+    * @param files   the files
+    */
+    public static void replace(Log log, @Nonnull String regex, @Nullable String replace, File...files) throws IOException {
+        if(files==null) return;
+        Preconditions.checkArgument(!Strings.isNullOrEmpty(regex), "regex is empty");
+        replace = Strings.nullToEmpty(replace);
+        for(File file : files) {
+            log.debug(String.format("Replacing [%s] with [%s] in [%s]", regex, replace, file.getAbsolutePath()));
+            String text = Files.toString(file, Charset.defaultCharset());
+            Files.write(text.replaceAll(regex, replace), file, Charset.defaultCharset());
+        }
+    }
 }
 

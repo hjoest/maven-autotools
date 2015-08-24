@@ -111,7 +111,7 @@ public class SymlinkUtilsTest {
     public void createSymlinkWithUnicodeCharacters()
     throws Exception {
         // FIXME: Found no way to fix this on Windows...
-        Assume.assumeTrue(Environment.getEnvironment().isWindows() == false);
+        Assume.assumeTrue(Environment.getBuildEnvironment().isWindows() == false);
         File targetDirectory = createDirectory(root, "a/b/c/\u00f6/\u0153");
         File target = createFile(targetDirectory, "target.txt", "Woowoo");
         File linkDirectory = createDirectory(root, "a/b2/c2/d2/e2");

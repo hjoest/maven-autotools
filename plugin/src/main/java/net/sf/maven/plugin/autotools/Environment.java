@@ -16,8 +16,11 @@
 
 package net.sf.maven.plugin.autotools;
 
+import java.io.File;
 import java.util.Map;
 import java.util.HashMap;
+
+import org.codehaus.plexus.util.StringUtils;
 
 
 /**
@@ -25,23 +28,35 @@ import java.util.HashMap;
  */
 public final class Environment {
 
-    /** */
-    private static Environment environment = new Environment();
-
-    /** */
+   private static Environment environment = new Environment();
+   
+   public static Environment getBuildEnvironment() {
+      return environment;
+   }
+   
+    /** Operating System */
     private String os;
 
-    /** */
+    /** Architecture */
     private String arch;
+    
+    /** --host parameter */
+    private String host;
 
-    /** */
+    /** 
+     * &lt;platformMapping&gt;
+     *     &lt;windows&gt;evil&lt;/windows&gt;
+     *     &lt;x86&gt;i386&lt;/x86&gt;
+     *     &lt;macosx.ppc&gt;mac.power&lt;/macosx.ppc&gt;
+     * &lt;/platformMapping&gt;    
+     */
     private Map<String, String> platformMapping;
 
 
     /**
-     * No public instantiation.
+     * Default to current system.
      */
-    private Environment() {
+    public Environment() {
         os = System.getProperty("os.name").toLowerCase();
         if (os.startsWith("windows")) {
             os = "windows";
@@ -63,41 +78,13 @@ public final class Environment {
         return "windows".equals(os);
     }
 
-
-    public boolean isLinux() {
-        return "linux".equals(os);
-    }
-
-
-    public boolean isMacOSX() {
-        return "macosx".equals(os);
-    }
-
-
     public boolean isX86() {
         return "x86".equals(arch);
     }
 
-
     public boolean isX86_64() {
         return "x86_64".equals(arch);
     }
-
-
-    public boolean isPPC() {
-        return "ppc".equals(arch);
-    }
-
-
-    public boolean isPPC64() {
-        return "ppc64".equals(arch);
-    }
-
-
-    public boolean isSparc() {
-        return "sparc".equals(arch);
-    }
-
 
     /**
      * Returns the name of the operating system.
@@ -117,6 +104,9 @@ public final class Environment {
         return os;
     }
 
+    public void setOperatingSystem(String os) {
+       this.os = os;
+    }
 
     /**
      * Returns the system architecture.
@@ -135,7 +125,18 @@ public final class Environment {
         }
         return arch;
     }
+    
+    public void setSystemArchitecture(String arch) {
+       this.arch = arch;
+    }
 
+    public String getHost() {
+       return host;
+    }
+    
+    public void setHost(String host) {
+       this.host = host;
+    }
 
     /**
      * Provide alternative names for target platforms.
@@ -148,25 +149,30 @@ public final class Environment {
         this.platformMapping = clonedMapping;
     }
 
-
     /**
      * @return the attached artifact classifier
      */
     public String getClassifier() {
-        Environment env = Environment.getEnvironment();
-        return "native"
-            + "-" + env.getSystemArchitecture()
-            + "-" + env.getOperatingSystem();
+        return String.format("%s-%s", getOperatingSystem(), getSystemArchitecture());
     }
-
-
+    
     /**
-     * Returns the environment.
-     *
-     * @return the environment
+     * Whether we are cross compiling.
+     * @return    true if host parameter has been specified, false otherwise
      */
-    public static Environment getEnvironment() {
-        return environment;
+    public boolean isCrossCompiling() {
+       return !StringUtils.isEmpty(host);
     }
 
+   /**
+    * Appends system architecture and operating system name to
+    * a given path.
+    *
+    * @param directory a directory
+    * @return the directory with architecture and os appended
+    */
+   public File makeOsArchDirectory(File directory) {
+      File osDirectory = new File(directory, getOperatingSystem());
+      return new File(osDirectory, getSystemArchitecture());
+   }
 }

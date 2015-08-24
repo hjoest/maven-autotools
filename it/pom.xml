@@ -18,16 +18,14 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>net.sf.maven-autotools</groupId>
-        <artifactId>maven-autotools</artifactId>
-        <version>0.2</version>
+        <groupId>com.github.hjoest.maven.plugins</groupId>
+    <artifactId>maven-autotools</artifactId>
+        <version>0.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>net.sf.maven-autotools</groupId>
     <artifactId>maven-autotools-it</artifactId>
     <packaging>pom</packaging>
     <name>maven-autotools-it</name>
-    <url>http://maven-autotools.sourceforge.net/site/${project.artifactId}</url>
     <build>
         <plugins>
             <plugin>

@@ -7,8 +7,8 @@ import java.io.InputStream;
 String execTarget(String binname, String targetPath, String arch, String os) {
     String binext = "windows".equals(getOperatingSystem()) ? ".exe" : "";
     String binpath = targetPath
-                     + "/autotools/install/bin"
-                     + "/" + arch + "/" + os + "/" + binname + binext;
+                     + "/autotools/install/"
+                     + + os + "/" + arch + "/bin/" + binname + binext;
 
     File binfile = new File(basedir, binpath);
     if (!binfile.isFile()) {

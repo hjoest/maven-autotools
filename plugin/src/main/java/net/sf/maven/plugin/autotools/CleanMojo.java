@@ -21,24 +21,29 @@ import java.io.IOException;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.sonatype.plexus.build.incremental.BuildContext;
 
 
 /**
- * @goal pre-clean
- * @phase pre-clean
- * @description delete all symlinks in the target directory
  */
+@Mojo(name = "pre-clean", 
+defaultPhase = LifecyclePhase.PRE_CLEAN)
 public final class CleanMojo
 extends AbstractMojo {
 
     /**
      * The project's target directory.
-     *
-     * @parameter expression="${project.build.directory}"
      */
+   @Parameter(defaultValue = "${project.build.directory")
     private File targetDirectory;
 
-
+   @Component
+   private BuildContext buildContext;
+   
     /**
      * {@inheritDoc}
      * @see org.apache.maven.plugin.AbstractMojo#execute()
@@ -47,6 +52,7 @@ extends AbstractMojo {
     throws MojoExecutionException {
         try {
             SymlinkUtils.deleteSymlinks(targetDirectory);
+            buildContext.refresh(targetDirectory);
         } catch (IOException ex) {
             throw new MojoExecutionException("Failed to delete symlinks", ex);
         }

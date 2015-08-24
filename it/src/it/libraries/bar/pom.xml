@@ -26,20 +26,20 @@
     <groupId>net.sf.maven-autotools.tests</groupId>
     <artifactId>bar</artifactId>
     <version>1.0</version>
-    <packaging>jar-with-autotools</packaging>
+    <packaging>tar.gz</packaging>
     <name>Test case: tiny sample program binds to a static library</name>
     <dependencies>
         <dependency>
             <groupId>net.sf.maven-autotools.tests</groupId>
             <artifactId>libstatic-foo</artifactId>
             <version>1.0</version>
-            <type>jar-with-autotools</type>
+            <type>tar.gz</type>
         </dependency>
         <dependency>
             <groupId>net.sf.maven-autotools.tests</groupId>
             <artifactId>libshared-foo</artifactId>
             <version>1.0</version>
-            <type>jar-with-autotools</type>
+            <type>tar.gz</type>
         </dependency>
     </dependencies>
 </project>

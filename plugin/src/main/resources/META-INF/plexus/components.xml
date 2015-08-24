@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <component-set>
     <components>
+
         <component>
             <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
             <role-hint>jar-with-autotools</role-hint>
@@ -13,6 +14,7 @@
                 <addedToClasspath>true</addedToClasspath>
             </configuration>
         </component>
+
         <component>
             <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
             <role-hint>jar-with-autotools</role-hint>
@@ -22,15 +24,15 @@
             <configuration>
                 <phases>
                     <generate-sources>
-                        net.sf.maven-autotools:maven-autotools-plugin:unpackDependencies
+                        com.github.hjoest.maven.plugins:autotools-maven-plugin:unpackDependencies
                     </generate-sources>
                     <process-resources>
                         org.apache.maven.plugins:maven-resources-plugin:resources
                     </process-resources>
                     <compile>
                         org.apache.maven.plugins:maven-compiler-plugin:compile,
-                        net.sf.maven-autotools:maven-autotools-plugin:javah,
-                        net.sf.maven-autotools:maven-autotools-plugin:compile
+                        com.github.hjoest.maven.plugins:autotools-maven-plugin:javah,
+                        com.github.hjoest.maven.plugins:autotools-maven-plugin:compile
                     </compile>
                     <process-test-resources>
                         org.apache.maven.plugins:maven-resources-plugin:testResources
@@ -40,11 +42,54 @@
                     </test-compile>
                     <test>
                         org.apache.maven.plugins:maven-surefire-plugin:test,
-                        net.sf.maven-autotools:maven-autotools-plugin:test
+                        com.github.hjoest.maven.plugins:autotools-maven-plugin:test
                     </test>
                     <package>
                         org.apache.maven.plugins:maven-jar-plugin:jar,
-                        net.sf.maven-autotools:maven-autotools-plugin:jar
+                        com.github.hjoest.maven.plugins:autotools-maven-plugin:jar
+                    </package>
+                    <install>
+                        org.apache.maven.plugins:maven-install-plugin:install
+                    </install>
+                    <deploy>
+                        org.apache.maven.plugins:maven-deploy-plugin:deploy
+                    </deploy>
+                </phases>
+            </configuration>
+        </component>
+
+        <component>
+            <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
+            <role-hint>tar.gz</role-hint>
+            <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
+            <configuration>
+                <extension>tar.gz</extension>
+                <type>tar.gz</type>
+                <packaging>tar.gz</packaging>
+                <language>native</language>
+                <addedToClasspath>false</addedToClasspath>
+            </configuration>
+        </component>
+
+        <component>
+            <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+            <role-hint>tar.gz</role-hint>
+            <implementation>
+                org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping
+            </implementation>
+            <configuration>
+                <phases>
+                    <generate-sources>
+                        com.github.hjoest.maven.plugins:autotools-maven-plugin:unpackDependencies
+                    </generate-sources>
+                    <compile>
+                        com.github.hjoest.maven.plugins:autotools-maven-plugin:compile
+                    </compile>
+                    <test>
+                        com.github.hjoest.maven.plugins:autotools-maven-plugin:test
+                    </test>
+                    <package>
+                        com.github.hjoest.maven.plugins:autotools-maven-plugin:jar
                     </package>
                     <install>
                         org.apache.maven.plugins:maven-install-plugin:install

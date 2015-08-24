@@ -26,7 +26,7 @@
     <groupId>net.sf.maven-autotools.tests</groupId>
     <artifactId>libstatic-foo</artifactId>
     <version>1.0</version>
-    <packaging>jar-with-autotools</packaging>
+    <packaging>tar.gz</packaging>
     <name>Test case: static sample library</name>
     <build>
         <plugins>
