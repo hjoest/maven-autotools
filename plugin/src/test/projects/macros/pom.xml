@@ -19,24 +19,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.sf.maven-autotools.tests</groupId>
-    <artifactId>autoscan</artifactId>
+    <artifactId>macros</artifactId>
     <version>1.0</version>
-    <packaging>jar-with-autotools</packaging>
-    <name>Test case: autoscan</name>
+    <packaging>pom</packaging>
+    <name>Test case: adding various M4 macros to acinclude.m4</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>net.sf.maven-autotools</groupId>
-                <artifactId>maven-autotools-plugin</artifactId>
-                <version>0.2</version>
-                <configuration>
-                    <verbose>true</verbose>
-                </configuration>
-                <extensions>true</extensions>
-            </plugin>
-        </plugins>
-    </build>
+    <modules>
+        <module>mymacros</module>
+        <module>usingmacros</module>
+    </modules>
 </project>

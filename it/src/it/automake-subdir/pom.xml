@@ -21,7 +21,7 @@
     <groupId>net.sf.maven-autotools.tests</groupId>
     <artifactId>automake-subdir</artifactId>
     <version>1.0</version>
-    <packaging>jar-with-autotools</packaging>
+    <packaging>tar.gz</packaging>
     <name>Test case: automake, additionally link native subdirectory</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -31,7 +31,7 @@
             <plugin>
                 <groupId>net.sf.maven-autotools</groupId>
                 <artifactId>maven-autotools-plugin</artifactId>
-                <version>0.2</version>
+                <version>0.3-SNAPSHOT</version>
                 <configuration>
                     <verbose>true</verbose>
                 </configuration>

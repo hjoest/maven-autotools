@@ -105,7 +105,7 @@ public class SymlinkUtils {
             try {
                 Map<String, String> env = new HashMap<String, String>();
                 String encoding = "UTF-8";
-                if (Environment.getEnvironment().isWindows()) {
+                if (Environment.getBuildEnvironment().isWindows()) {
                     encoding = "CP1252";
                 }
                 env.put("LC_CTYPE", "C." + encoding);

@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -34,14 +35,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sf.maven.plugin.autotools.common.Const;
+import org.apache.maven.MavenExecutionException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -50,708 +53,641 @@ import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.InterpolationFilterReader;
 import org.codehaus.plexus.util.StringUtils;
+import org.sonatype.plexus.build.incremental.BuildContext;
 
 
 /**
- * @goal compile
- * @phase compile
- * @description run 'configure', 'make', and 'make install'
+ * Runs autotools autogen.sh, configure, make, make install
  */
+@Mojo(name = "compile",
+      defaultPhase = LifecyclePhase.COMPILE,
+      requiresProject = true)
 public final class CompileMojo
-extends AbstractMojo {
+      extends AbstractMojo {
 
-    /**
-     * The dependencies directory.
-     *
-     * @parameter expression="${project.build.directory}/autotools/dependencies"
-     */
-    private File dependenciesDirectory;
+   /**
+    * The build directory.  It needs to be skipped in making symlinks, incase the autotools folder is the root directory. (which is common)
+    */
+   @Parameter(defaultValue = "${project.build.directory}")
+   private File buildDirectory;
 
-    /**
-     * The configure directory.
-     *
-     * @parameter expression="${project.build.directory}/autotools/configure"
-     */
-    private File configureDirectory;
+   /**
+    * The dependencies directory.
+    */
+   @Parameter(defaultValue = "${project.build.directory}/autotools/dependencies")
+   private File dependenciesDirectory;
 
-    /**
-     * The working directory.
-     *
-     * @parameter expression="${project.build.directory}/autotools/work"
-     */
-    private File workingDirectory;
+   /**
+    * The configure directory.
+    */
+   @Parameter(defaultValue = "${project.build.directory}/autotools/configure")
+   private File configureDirectory;
 
-    /**
-     * The install directory.
-     *
-     * @parameter expression="${project.build.directory}/autotools/install"
-     */
-    private File installDirectory;
+   /**
+    * The working directory.
+    */
+   @Parameter(defaultValue = "${project.build.directory}/autotools/work")
+   private File workingDirectory;
 
-    /**
-     * The autotools scripts directory.
-     *
-     * @parameter expression="${basedir}/src/main/autotools"
-     */
-    private File autotoolsMainDirectory;
+   /**
+    * The install directory.
+    */
+   @Parameter(defaultValue = "${project.build.directory}/autotools/install")
+   private File installDirectory;
 
-    /**
-     * The native source files directory.
-     *
-     * @parameter expression="${basedir}/src/main/native"
-     */
-    private File nativeMainDirectory;
+   /**
+    * The autotools scripts directory.
+    */
+   @Parameter(defaultValue = "${basedir}/src/main/autotools", readonly = false)
+   private File autotoolsMainDirectory;
 
-    /**
-     * Set 'true' if you want verbose output.
-     *
-     * @parameter
-     */
-    private boolean verbose;
+   /**
+    * The native source files directory.
+    */
+   @Parameter(defaultValue = "${basedir}/src/main/native", readonly = false)
+   private File nativeMainDirectory;
 
-    /**
-     * Unix shell script for arbitrary post processing after 'make install'.
-     * If it exists and if it is executable, it will be run in the platform
-     * specific install directory, e.g. <code>target/autotools/install/</code>.
-     *
-     * @parameter expression="${basedir}/src/main/autotools/postinstall.sh"
-     */
-    private File postInstallScript;
+   /**
+    * Set 'true' if you want verbose output.
+    */
+   @Parameter
+   private boolean verbose;
 
-    /**
-     * Artifacts containing additional autoconf macros.
-     *
-     * @parameter
-     */
-    private MacroDependency[] macroDependencies;
+   /**
+    * Specify 'true' if you want to override pkgconfigdir to the maven dependencies directory
+    */
+   @Parameter(defaultValue = "true")
+   private boolean overridePkgConfigDir;
 
-    /**
-     * @component
-     */
-    private ArtifactFactory artifactFactory;
+   /**
+    * Unix shell script for arbitrary post processing after 'make install'.
+    * If it exists and if it is executable, it will be run in the platform
+    * specific install directory, e.g. <code>target/autotools/install/</code>.
+    */
+   @Parameter(defaultValue = "${basedir}/src/main/autotools/postinstall.sh")
+   private File postInstallScript;
 
-    /**
-     * @component
-     */
-    private ArtifactResolver resolver;
+   /**
+    * Artifacts containing additional autoconf macros.
+    */
+   @Parameter
+   private MacroDependency[] macroDependencies;
 
-    /**
-     * @parameter default-value="${localRepository}"
-     */
-    private ArtifactRepository localRepository;
+   @Component
+   private ArtifactFactory artifactFactory;
 
-    /**
-     * @parameter default-value="${project.remoteArtifactRepositories}"
-     */
-    private List<ArtifactRepository> remoteRepositories;
+   @Component
+   private ArtifactResolver resolver;
 
-    /**
-     * @parameter default-value="${project}"
-     */
-    private org.apache.maven.project.MavenProject mavenProject;
+   @Parameter(defaultValue = "${localRepository}")
+   private ArtifactRepository localRepository;
+
+   @Parameter(defaultValue = "${project.remoteArtifactRepositories}")
+   private List<ArtifactRepository> remoteRepositories;
+
+   @Parameter(defaultValue = "${project}")
+   private org.apache.maven.project.MavenProject mavenProject;
+
+   @Component
+   private BuildContext buildContext;
 
 
-    // TODO: this should really be determined automatically from AC_CONFIG_MACRO_DIR in configure.ac
-    /**
-     * The name of the sub-directory of {@link #autotoolsMainDirectory} in which
-     * m4 macros reside. Note that ATM this setting needs to be consistent with
-     * AC_CONFIG_MACRO_DIR in configure.ac and -I flags in ACLOCAL_AMFLAGS in
-     * Makefile.am.
-     *
-     * @parameter default-value="m4"
-     */
-    private String macroDirectoryName;
+   // TODO: this should really be determined automatically from AC_CONFIG_MACRO_DIR in configure.ac
+   /**
+    * The name of the sub-directory of {@link #autotoolsMainDirectory} in which
+    * m4 macros reside. Note that ATM this setting needs to be consistent with
+    * AC_CONFIG_MACRO_DIR in configure.ac and -I flags in ACLOCAL_AMFLAGS in
+    * Makefile.am.
+    */
+   @Parameter(defaultValue = "m4")
+   private String macroDirectoryName;
 
-    /**
-     * Whether to use 'autoreconf'. If false, a more brittle, hard-coded
-     * sequence of aclocal, autoheader, libtoolize, automake and autoconf will
-     * be used.
-     *
-     * @parameter default-value="true"
-     */
-    private boolean autoreconf;
+   /**
+    * 'autogen.sh' script.
+    */
+   @Parameter(defaultValue = "autogen.sh")
+   private File autogenScript;
 
-    /**
-     * Additional parameters to pass to the ./configure script. Can't use --bindir, --libdir or --includedir.
-     *
-     * @parameter
-     */
-    private String configureArgs;
+   /**
+    * Additional parameters to pass to the ./configure script. Can't use --bindir, --libdir or --includedir.
+    */
+   @Parameter(property = "autotools.configureArgs")
+   private String configureArgs;
 
-    /**
-     * Compile for MinGW host on Windows.
-     *
-     * @parameter default-value="false"
-     */
-    private String mingw;
+   /**
+    * Additional environment variables to set before running configure.
+    */
+   @Parameter
+   private Map<String,String> configureEnv;
 
-    /**
-     * Allows to provide alternative names for target platforms, particularly
-     * names of operating systems and platform architectures.
-     *
-     * Examples:
-     * &lt;platformMapping&gt;
-     *     &lt;windows&gt;evil&lt;/windows&gt;
-     *     &lt;x86&gt;i386&lt;/x86&gt;
-     *     &lt;macosx.ppc&gt;mac.power&lt;/macosx.ppc&gt;
-     * &lt;/platformMapping&gt;
-     *
-     * @parameter
-     */
-    private Map<String,String> platformMapping;
+   /**
+    * Additional environment variables to set before running make.
+    */
+   @Parameter
+   private Map<String,String> makeEnv;
 
-    /**
-     * Additional environment variables to set before running configure.
-     *
-     * @parameter
-     */
-    private Map<String,String> configureEnv;
+   /**
+    * Host environment definition
+    *
+    * Example:
+    * <pre>
+    * &lt;environment&gt;
+    * &lt;arch&gt;arm&lt;/arch&gt;
+    * &lt;os&gt;linux&lt;/os&gt;
+    * &lt;host&gt;arm-linux-gnueabihf&lt;/host&gt;
+    * &lt;/environment&gt;
+    * </pre>
+    */
+   @Parameter
+   private Environment environment;
 
-    /**
-     * Used to run child processes.
-     */
-    private ProcessExecutor exec = new DefaultProcessExecutor();
+   /**
+    * Used to run child processes.
+    */
+   private ProcessExecutor exec = new DefaultProcessExecutor();
 
-    /**
-     * Used to avoid running this mojo multiple times with exactly the
-     * same configuration.
-     */
-    private RepeatedExecutions repeated = new RepeatedExecutions();
+   /**
+    * Used to avoid running this mojo multiple times with exactly the
+    * same configuration.
+    */
+   private RepeatedExecutions repeated = new RepeatedExecutions();
 
-    /**
-     * Postfix for generated scripts.
-     *
-     * @parameter
-     */
-    private String generatedScriptPostfix;
+   /**
+    * Postfix for generated scripts.
+    */
+   @Parameter
+   private String generatedScriptPostfix;
 
-    /**
-     * {@inheritDoc}
-     * @see org.apache.maven.plugin.AbstractMojo#execute()
-     */
-    public void execute()
-    throws MojoExecutionException {
-        if (repeated.alreadyRun(getClass().getName(),
-                                nativeMainDirectory,
-                                autotoolsMainDirectory,
-                                installDirectory,
-                                workingDirectory,
-                                configureDirectory,
-                                dependenciesDirectory)) {
-            getLog().info("Skipping repeated execution");
-            return;
-        }
-        Environment environment = Environment.getEnvironment();
-        if (platformMapping != null) {
-            environment.applyPlatformMapping(platformMapping);
-        }
-        initLogging();
-        prepareBuild();
-        configure();
-        make();
-        postInstall();
-    }
+   private File realWorkDirectory;
+   private File realDepDirectory;
+   private File realInstallDirectory;
+
+   Environment getEnvironment() {
+      if(environment==null) {
+         getLog().info("Using detected environment");
+         environment = new Environment();
+      }
+      return environment;
+   }
+
+   /**
+    * {@inheritDoc}
+    * @see org.apache.maven.plugin.AbstractMojo#execute()
+    */
+   public void execute()
+         throws MojoExecutionException {
+      getLog().info("Compiling Autotools Project");
+      realWorkDirectory = getEnvironment().makeOsArchDirectory(workingDirectory);
+      realInstallDirectory = getEnvironment().makeOsArchDirectory(installDirectory);
+      realDepDirectory = getEnvironment().makeOsArchDirectory(dependenciesDirectory);
+      if (repeated.alreadyRun(getClass().getName(),
+            nativeMainDirectory,
+            autotoolsMainDirectory,
+            configureDirectory,
+            realDepDirectory,
+            realInstallDirectory,
+            realWorkDirectory,
+            autogenScript,
+            configureArgs,
+            configureEnv,
+            makeEnv,
+            overridePkgConfigDir)) {
+         getLog().info("Skipping repeated execution");
+         return;
+      }
+      initLogging();
+      prepareBuild();
+      autogen();
+      configure();
+      make();
+      postInstall();
+   }
 
 
-    private void prepareBuild()
-    throws MojoExecutionException {
-        try {
-            configureDirectory.mkdirs();
-            workingDirectory.mkdirs();
-            installDirectory.mkdirs();
-            makeSymlinks(autotoolsMainDirectory, configureDirectory);
+   private void prepareBuild()
+         throws MojoExecutionException {
+      try {
+         configureDirectory.mkdirs();
+         realWorkDirectory.mkdirs();
+         realInstallDirectory.mkdirs();
+         makeSymlinks(autotoolsMainDirectory, configureDirectory);
+         if(!autotoolsMainDirectory.equals(nativeMainDirectory)) { //no need for both symlinks if the folders are the same
             makeSymlinks(nativeMainDirectory, configureDirectory);
-            makeM4Directory();
-            writeM4Macros();
-            if (!FileUtils.fileExists(configureDirectory, "Makefile.am")) {
-                // If not produced by automake, it is highly probable that the
-                // make script can not deal with source files in a neighboring
-                // directory.  To play it safe, we link the source files into
-                // the working directory as well.
-                makeSymlinks(nativeMainDirectory, workingDirectory);
-            }
-        } catch (IOException ex) {
-            throw new MojoExecutionException(
-                    "Failed to prepare build directories", ex);
-        } catch (ArtifactNotFoundException ex) {
-            throw new MojoExecutionException("Could not find artifact", ex);
-        } catch (ArtifactResolutionException ex) {
-            throw new MojoExecutionException("Failed to resolve artifact", ex);
-        }
-    }
+         }
+         makeM4Directory();
+         writeM4Macros();
+         if (!FileUtils.fileExists(configureDirectory, "Makefile.am")) {
+            // If not produced by automake, it is highly probable that the
+            // make script can not deal with source files in a neighboring
+            // directory.  To play it safe, we link the source files into
+            // the working directory as well.
+            makeSymlinks(nativeMainDirectory, realWorkDirectory);
+         }
+      } catch (IOException ex) {
+         throw new MojoExecutionException(
+               "Failed to prepare build directories", ex);
+      } catch (ArtifactNotFoundException ex) {
+         throw new MojoExecutionException("Could not find artifact", ex);
+      } catch (ArtifactResolutionException ex) {
+         throw new MojoExecutionException("Failed to resolve artifact", ex);
+      }
+   }
 
 
-    private void makeM4Directory() {
-        if (!FileUtils.fileExists(configureDirectory, macroDirectoryName)) {
-            new File(configureDirectory, macroDirectoryName).mkdir();
-        }
-    }
+   private void makeM4Directory() {
+      if (!FileUtils.fileExists(configureDirectory, macroDirectoryName)) {
+         new File(configureDirectory, macroDirectoryName).mkdir();
+      }
+   }
 
 
-    private void configure()
-    throws MojoExecutionException {
-        if (FileUtils.fileExists(configureDirectory, "Makefile")
+   private void configure()
+         throws MojoExecutionException {
+      if (FileUtils.fileExists(configureDirectory, "Makefile")
             && !FileUtils.isOlderThanAnyOf(configureDirectory, "Makefile",
-                                           "Makefile.in", "Makefile.am")) {
-            // No need to run configure since there is an up-to-date makefile.
-            return;
-        }
-        String configurePath = "configure";
-        try {
-            autoconf();
-            File configureScript =
-                new File(configureDirectory, configurePath);
-            if (!configureScript.canExecute()) {
-                configureScript.setExecutable(true);
+            "Makefile.in", "Makefile.am")) {
+         getLog().info("No need to run configure since there is an up-to-date makefile.");
+         return;
+      }
+      String configurePath = "configure";
+      try {
+         getLog().info("Running configure");
+         File configureScript = new File(configureDirectory, configurePath);
+         if (!configureScript.canExecute()) {
+            configureScript.setExecutable(true);
+         }
+         configurePath = FileUtils.calculateRelativePath(realWorkDirectory, configureScript);
+         String configure = String.format("%s %s --prefix=\"%s\"",
+               configurePath,
+               verbose ? "" : " --silent", FileUtils.fixAbsolutePathForUnixShell(realInstallDirectory));
+
+         if(getEnvironment().isCrossCompiling()) {
+            configure += " --host="+getEnvironment().getHost();
+         }
+         if(overridePkgConfigDir) {
+            File depLibDir = new File(realDepDirectory, "lib");
+            File pkgconfigDir = new File(depLibDir, "pkgconfig");
+            configure += " PKG_CONFIG_PATH=" + pkgconfigDir.getAbsolutePath();
+         }
+
+         if (!StringUtils.isEmpty(configureArgs)) {
+            configure += " " + configureArgs;
+         }
+         String[] configureCommand = {
+               "sh", "-c", configure
+         };
+         if (verbose && getLog().isInfoEnabled()) {
+            getLog().info("cd '" + realWorkDirectory + "'");
+            getLog().info(Arrays.toString(configureCommand));
+         }
+         exec.execProcess(
+               configureCommand,
+               makeConfigureEnvironment(),
+               realWorkDirectory);
+         buildContext.refresh(realWorkDirectory);
+      } catch (Exception ex) {
+         throw new MojoExecutionException("Failed to run '"
+               + configurePath + "'"
+               + " in directory '"
+               + realWorkDirectory + "'",
+               ex);
+      }
+   }
+
+
+   private void make()
+         throws MojoExecutionException {
+      getLog().info("running make");
+      try {
+         String[] makeCommand = {
+               "sh", "-c", "make"
+         };
+         exec.execProcess(makeCommand,
+               makeMakeEnvironment(),
+               realWorkDirectory);
+         String[] makeInstallCommand = {
+               "sh", "-c", "make install"
+         };
+         exec.execProcess(makeInstallCommand,
+               makeMakeEnvironment(),
+               realWorkDirectory);
+         moveDLLsToLibDirectory();
+         File libDir = new File(realInstallDirectory, "lib");
+         getLog().debug("Processing libtool archives in " + libDir.getAbsolutePath());
+         FileUtils.replace(getLog(), realDepDirectory.getAbsolutePath(), Const.INSTALLDIR_PLACEHOLDER, libDir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+               return name.endsWith(".la");
             }
-            configurePath =
-                FileUtils.calculateRelativePath(workingDirectory,
-                                                configureScript);
-            File binDirectory = new File(installDirectory, "bin");
-            binDirectory = makeOsArchDirectory(binDirectory);
-            File libDirectory = new File(installDirectory, "lib");
-            libDirectory = makeOsArchDirectory(libDirectory);
-            File includeDirectory = new File(installDirectory, "include");
-            String configure =
-                configurePath
-                + (verbose ? "" : " --silent")
-                + " --bindir=\""
-                + FileUtils.fixAbsolutePathForUnixShell(binDirectory) + "\""
-                + " --libdir=\""
-                + FileUtils.fixAbsolutePathForUnixShell(libDirectory) + "\""
-                + " --includedir=\""
-                + FileUtils.fixAbsolutePathForUnixShell(includeDirectory) + "\"";
-            if (Boolean.valueOf(mingw)) {
-                Environment environment = Environment.getEnvironment();
-                if (environment.isWindows()) {
-                    if (environment.isX86_64()) {
-                        configure += " --host=x86_64-w64-mingw32";
-                    } else {
-                        configure += " --host=i686-w64-mingw32";
-                    }
-                }
+         }));
+         FileUtils.replace(getLog(), realInstallDirectory.getAbsolutePath(), Const.INSTALLDIR_PLACEHOLDER, libDir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+               return name.endsWith(".la");
             }
-            if (!StringUtils.isEmpty(configureArgs)) {
-                configure += " " + configureArgs;
+         }));
+         File pkgconfigDir = new File(libDir, "pkgconfig");
+         if(pkgconfigDir.exists()) {
+            FileUtils.replace(getLog(), realInstallDirectory.getAbsolutePath(), Const.INSTALLDIR_PLACEHOLDER, pkgconfigDir.listFiles(new FilenameFilter() {
+               @Override
+               public boolean accept(File dir, String name) {
+                  return name.endsWith(".pc");
+               }
+            }));
+         }
+         buildContext.refresh(realWorkDirectory);
+      } catch (Exception ex) {
+         throw new MojoExecutionException("Failed to run \"make\"", ex);
+      }
+   }
+
+
+   private void postInstall()
+         throws MojoExecutionException {
+      if (postInstallScript == null || !postInstallScript.exists()) {
+         getLog().info("No post install script.");
+         return;
+      }
+      try {
+         String[] postInstallCommand = {
+               "sh", postInstallScript.getAbsolutePath()
+         };
+         exec.execProcess(postInstallCommand,
+               null,
+               realInstallDirectory);
+      } catch (Exception ex) {
+         throw new MojoExecutionException("Failed to run \""
+               + postInstallScript + "\"", ex);
+      }
+   }
+
+   /**
+    * This is a hack necessary for Windows to move DLLs to the right
+    * location after 'make install'.
+    */
+   private void moveDLLsToLibDirectory()
+         throws IOException {
+      if (getEnvironment().isWindows()) {
+         File libDirectory = new File(realInstallDirectory, "lib");
+         File invalidBinDir = new File(libDirectory, "../bin");
+         if (invalidBinDir.exists()) {
+            File[] children = invalidBinDir.listFiles();
+            for (int k = 0; k < children.length; ++k) {
+               File child = children[k];
+               File movedChild = new File(libDirectory,
+                     child.getName());
+               FileUtils.rename(child, movedChild);
             }
-            String[] configureCommand = {
-                    "sh", "-c", configure
-            };
-            if (verbose && getLog().isInfoEnabled()) {
-                getLog().info("cd '" + workingDirectory + "'");
-                getLog().info(Arrays.toString(configureCommand));
-            }
-            exec.execProcess(
-                    configureCommand,
-                    makeConfigureEnvironment(),
-                    workingDirectory);
-        } catch (Exception ex) {
-            throw new MojoExecutionException("Failed to run '"
-                                             + configurePath + "'"
-                                             + " in directory '"
-                                             + workingDirectory + "'",
-                                             ex);
-        }
-    }
+         }
+         invalidBinDir.delete();
+      }
+   }
 
 
-    private void make()
-    throws MojoExecutionException {
-        try {
-            String[] makeCommand = {
-                    "sh", "-c", "make"
-            };
-            exec.execProcess(makeCommand,
-                             null,
-                             workingDirectory);
-            String[] makeInstallCommand = {
-                    "sh", "-c", "make install"
-            };
-            exec.execProcess(makeInstallCommand,
-                             null,
-                             workingDirectory);
-            moveDLLsToLibDirectory();
-        } catch (Exception ex) {
-            throw new MojoExecutionException("Failed to run \"make\"", ex);
-        }
-    }
+   private void autogen()
+         throws MojoExecutionException {
+      if (FileUtils.fileExists(configureDirectory, "configure")
+            || !FileUtils.isOlderThanAnyOf(configureDirectory, "configure", "configure.ac", "configure.in")) {
+         getLog().info("Skipping autogen script, configure script exists");
+         return;
+      }
+      File script = new File(configureDirectory, autogenScript.getName());
+      getLog().info("Generating configure script");
+      if(!script.exists()) {
+         throw new MojoExecutionException("autogen script does not exist: " + script.getAbsolutePath());
+      }
+      if (!script.canExecute()) {
+         script.setExecutable(true);
+      }
+      String[] shellCommand = {
+            "sh", "-c", script.getAbsolutePath()
+      };
+      if (verbose && getLog().isInfoEnabled()) {
+         getLog().info("cd '" + configureDirectory + "'");
+         getLog().info(Arrays.toString(shellCommand));
+      }
+      try {
+         exec.execProcess(
+               shellCommand,
+               null,
+               configureDirectory);
+      }
+      catch (IOException e) {
+         throw new MojoExecutionException("Error invoking autogen", e);
+      }
+      catch (InterruptedException e) {
+         throw new MojoExecutionException("Error invoking autogen", e);
+      }
+   }
 
+   /**
+    * Returns the environment variables used to call the configure
+    * script.
+    *
+    * @return the environment
+    * @throws IOException if an I/O error occurs
+    */
+   private Map<String,String> makeConfigureEnvironment()
+         throws IOException {
+      File includes = new File(realDepDirectory, "include");
+      File libraries = new File(realDepDirectory, "lib");
+      Map<String,String> env = new HashMap<String,String>(System.getenv());
+      if (configureEnv != null) {
+         for(Entry<String, String> entry : configureEnv.entrySet()) {
+            env.put(entry.getKey(), entry.getValue() == null ? "" : entry.getValue());
+         }
+      }
+      mergeEnvVar(env, "CFLAGS", "-I"
+            + FileUtils.fixAbsolutePathForUnixShell(includes));
+      mergeEnvVar(env, "CXXFLAGS", "-I"
+            + FileUtils.fixAbsolutePathForUnixShell(includes));
+      mergeEnvVar(env, "LDFLAGS", "-L"
+            + FileUtils.fixAbsolutePathForUnixShell(libraries));
+      return env;
+   }
 
-    private void postInstall()
-    throws MojoExecutionException {
-        if (postInstallScript == null || !postInstallScript.exists()) {
-            getLog().info("No post install script.");
-            return;
-        }
-        try {
-            String[] postInstallCommand = {
-                    "sh", postInstallScript.getAbsolutePath()
-            };
-            exec.execProcess(postInstallCommand,
-                             null,
-                             installDirectory);
-        } catch (Exception ex) {
-            throw new MojoExecutionException("Failed to run \""
-                                             + postInstallScript + "\"", ex);
-        }
-    }
+   private Map<String,String> makeMakeEnvironment()
+         throws IOException {
+      Map<String,String> env = new HashMap<String,String>(System.getenv());
+      if (makeEnv != null) {
+         for(Entry<String, String> entry : makeEnv.entrySet()) {
+            env.put(entry.getKey(), entry.getValue() == null ? "" : entry.getValue());
+         }
+      }
+      return env;
+   }
 
+   private void makeSymlinks(File sourceDirectory, File destinationDirectory)
+         throws IOException {
+      if (sourceDirectory == null) {
+         return;
+      }
+      //don't make symlinks from build directory to avoid recursive loop
+      if(sourceDirectory.getAbsolutePath().equals(buildDirectory.getAbsolutePath())) {
+         return;
+      }
+      getLog().debug(String.format("Making Symbolic links %s -> %s", sourceDirectory.getAbsolutePath(), destinationDirectory.getAbsolutePath()));
+      File[] files = sourceDirectory.listFiles();
+      if (files == null) {
+         return;
+      }
+      for (File file : files) {
+         if (file.getName().startsWith(".")) {
+            continue; // TODO: this might be to broad
+         }
+         if (file.isDirectory()) {
+            File childDestinationDirectory =
+                  new File(destinationDirectory, file.getName());
+            childDestinationDirectory.mkdir();
+            makeSymlinks(file, childDestinationDirectory);
+         } else if (file.isFile()) {
+            File link = new File(destinationDirectory, file.getName());
+            SymlinkUtils.createSymlink(link, file, true);
+         }
+      }
+   }
 
-    /**
-     * This is a hack necessary for Windows to move DLLs to the right
-     * location after 'make install'.
-     */
-    private void moveDLLsToLibDirectory()
-    throws IOException {
-        Environment environment = Environment.getEnvironment();
-        if (environment.isWindows()) {
-            File libraries = new File(installDirectory, "lib");
-            File libDirectory = makeOsArchDirectory(libraries);
-            File invalidBinDir = new File(libDirectory, "../bin");
-            if (invalidBinDir.exists()) {
-                File[] children = invalidBinDir.listFiles();
-                for (int k = 0; k < children.length; ++k) {
-                    File child = children[k];
-                    File movedChild = new File(libDirectory,
-                                               child.getName());
-                    FileUtils.rename(child, movedChild);
-                }
-            }
-            invalidBinDir.delete();
-        }
-    }
-
-
-    private void autoconf()
-    throws Exception {
-        List<String> commands = new ArrayList<String>();
-        File autoscanPost = null;
-        try {
-            if (!FileUtils.fileExists(configureDirectory, "configure.ac")
-                  && !FileUtils.fileExists(configureDirectory, "configure.in")
-                  && !FileUtils.fileExists(configureDirectory, "Makefile.in")) {
-                commands.add("autoscan");
-                autoscanPost = extractAutoscanScript("autoscan-post");
-                commands.add("./" + autoscanPost.getName());
-            }
-            if (!FileUtils.fileExists(configureDirectory, "configure.in")
-                  && !FileUtils.fileExists(configureDirectory, "Makefile.in")) {
-                if (!autoreconf) {
-                        commands.add("aclocal");
-                        commands.add("autoheader");
-                        commands.add(command("libtoolize") + " -c -f" + (verbose ? "" : " --quiet"));
-                        commands.add("automake -c -f -a" + (verbose ? "" : " -W none"));
-                }
-                createEmptyIfDoesNotExist(configureDirectory, "NEWS");
-                createEmptyIfDoesNotExist(configureDirectory, "README");
-                createEmptyIfDoesNotExist(configureDirectory, "AUTHORS");
-                createEmptyIfDoesNotExist(configureDirectory, "ChangeLog");
-                createEmptyIfDoesNotExist(configureDirectory, "COPYING");
-            }
-            if (!FileUtils.fileExists(configureDirectory, "configure")) {
-                if (autoreconf) {
-                    commands.add("autoreconf --install" + (verbose ? " --verbose" : ""));
-                } else {
-                    commands.add("autoconf");
-                }
-            }
-            if (verbose && getLog().isInfoEnabled()) {
-                getLog().info("cd '" + configureDirectory + "'");
-            }
-            for (String command : commands) {
-                String[] shellCommand = {
-                        "sh", "-c", command
-                };
-                if (verbose && getLog().isInfoEnabled()) {
-                    getLog().info(Arrays.toString(shellCommand));
-                }
-                exec.execProcess(
-                        shellCommand,
-                        null,
-                        configureDirectory);
-            }
-        } finally {
-            if (autoscanPost != null) {
-                autoscanPost.delete();
-            }
-        }
-    }
-
-
-    private File extractAutoscanScript(String scriptName)
-    throws IOException {
-        String temporaryScriptName = "." + scriptName + "-";
-        if (generatedScriptPostfix != null) {
-            temporaryScriptName += generatedScriptPostfix;
-        } else {
-            int rnd = Math.abs(new Random().nextInt());
-            temporaryScriptName += Integer.toString(rnd);
-        }
-        File script = new File(configureDirectory, temporaryScriptName);
-        Map<String, String> variables = makeAutoscanVariables();
-        Reader reader =
-                  new InterpolationFilterReader(
-                          new InputStreamReader(
-                                  getClass().getResourceAsStream(scriptName),
-                                  "UTF-8"),
-                          variables);
-        try {
-            Writer writer =
-                          new OutputStreamWriter(
-                                  new FileOutputStream(script),
-                                  "UTF-8");
-            try {
-                IOUtil.copy(reader, writer);
-            } finally {
-                IOUtil.close(writer);
-            }
-        } finally {
-            IOUtil.close(reader);
-        }
-        script.setExecutable(true);
-        return script;
-    }
-
-
-    private Map<String, String> makeAutoscanVariables() {
-        Map<String, String> variables = new HashMap<String, String>();
-        File[] sources = nativeMainDirectory.listFiles();
-        String programName = null;
-        for (File source : sources) {
-            String sourceName = source.getName();
-            variables.put("autoscan.sources", sourceName);
-            int p = sourceName.lastIndexOf('.');
-            if (programName == null && p > -1) {
-                programName = sourceName.substring(0, p);
-            }
-        }
-        if (programName == null) {
-            programName = "a.out";
-        }
-        variables.put("autoscan.program", programName);
-        return variables;
-    }
-
-
-    /**
-     * Returns the environment variables used to call the configure
-     * script.
-     *
-     * @return the environment
-     * @throws IOException if an I/O error occurs
-     */
-    private Map<String,String> makeConfigureEnvironment()
-    throws IOException {
-        File includes = new File(dependenciesDirectory, "include");
-        File libraries = new File(dependenciesDirectory, "lib");
-        libraries = makeOsArchDirectory(libraries);
-        Map<String,String> env = new HashMap<String,String>(System.getenv());
-        if (configureEnv != null) {
-            env.putAll(configureEnv);
-        }
-        mergeEnvVar(env, "CFLAGS", "-I"
-                         + FileUtils.fixAbsolutePathForUnixShell(includes));
-        mergeEnvVar(env, "LDFLAGS", "-L"
-                         + FileUtils.fixAbsolutePathForUnixShell(libraries));
-        return env;
-    }
-
-
-    /**
-     * Appends system architecture and operating system name to
-     * a given path.
-     *
-     * @param directory a directory
-     * @return the directory with architecture and os appended
-     */
-    private File makeOsArchDirectory(File directory) {
-        Environment environment = Environment.getEnvironment();
-        String arch = environment.getSystemArchitecture();
-        String os = environment.getOperatingSystem();
-        File archDirectory = new File(directory, arch);
-        File osDirectory = new File(archDirectory, os);
-        return osDirectory;
-    }
-
-
-    private void makeSymlinks(File sourceDirectory, File destinationDirectory)
-    throws IOException {
-        if (sourceDirectory == null) {
-            return;
-        }
-        File[] files = sourceDirectory.listFiles();
-        if (files == null) {
-            return;
-        }
-        for (File file : files) {
-            if (file.getName().startsWith(".")) {
-                continue; // TODO: this might be to broad
-            }
-            if (file.isDirectory()) {
-                File childDestinationDirectory =
-                      new File(destinationDirectory, file.getName());
-                childDestinationDirectory.mkdir();
-                makeSymlinks(file, childDestinationDirectory);
-            } else if (file.isFile()) {
-                File link = new File(destinationDirectory, file.getName());
-                SymlinkUtils.createSymlink(link, file, true);
-            }
-        }
-    }
-
-
-    private void createEmptyIfDoesNotExist(File directory, String name)
-    throws IOException {
-        File file = new File(directory, name);
-        if (!file.exists()) {
-            new FileOutputStream(file).close();
-        }
-    }
-
-
-    private void writeM4Macros()
-    throws IOException,
-           ArtifactResolutionException,
-           ArtifactNotFoundException {
-        if (FileUtils.fileExists(configureDirectory, "acinclude.m4")
-                || !FileUtils.fileExists(configureDirectory, "configure.ac")) {
-            return;
-        }
-        List<Artifact> macroArtifacts = resolveDependencies(macroDependencies);
-        File configure =
+   private void writeM4Macros()
+         throws IOException,
+         ArtifactResolutionException,
+         ArtifactNotFoundException {
+      if (FileUtils.fileExists(configureDirectory, "acinclude.m4")
+            || !FileUtils.fileExists(configureDirectory, "configure.ac")) {
+         return;
+      }
+      getLog().debug("Writing M4 Macros");
+      List<Artifact> macroArtifacts = resolveDependencies(macroDependencies);
+      File configure =
             SymlinkUtils.resolveSymlink(
-                    new File(configureDirectory, "configure.ac"));
-        BufferedReader reader =
+                  new File(configureDirectory, "configure.ac"));
+      BufferedReader reader =
             new BufferedReader(
-                    new InputStreamReader(
-                            new FileInputStream(configure), "UTF-8"));
-        Set<String> alreadyProcessed = new HashSet<String>();
-        Pattern pattern = Pattern.compile("([A-Z_]+[A-Z0-9_]*).*");
-        String line = null;
-        File m4Directory = new File(configureDirectory, "m4");
-        m4Directory.mkdir();
-        while ((line = reader.readLine()) != null) {
-            Matcher matcher = pattern.matcher(line);
-            if (!matcher.matches()) {
-                continue;
+                  new InputStreamReader(
+                        new FileInputStream(configure), "UTF-8"));
+      Set<String> alreadyProcessed = new HashSet<String>();
+      Pattern pattern = Pattern.compile("([A-Z_]+[A-Z0-9_]*).*");
+      String line = null;
+      File m4Directory = new File(configureDirectory, "m4");
+      m4Directory.mkdir();
+      while ((line = reader.readLine()) != null) {
+         Matcher matcher = pattern.matcher(line);
+         if (!matcher.matches()) {
+            continue;
+         }
+         String macro = matcher.group(1);
+         if (alreadyProcessed.contains(macro)) {
+            continue;
+         }
+         try {
+            String macroFilename = macro.toLowerCase() + ".m4";
+            File macroFile = new File(m4Directory, macroFilename);
+            if (!macroFile.exists()) {
+               URL macroUrl = findResource(macroArtifacts, macro + ".m4");
+               if (macroUrl != null) {
+                  if (getLog().isDebugEnabled()) {
+                     getLog().debug("Copying macro " + macro
+                           + " to m4/" + macroFilename
+                           + ", reading from " + macroUrl);
+                  }
+                  FileUtils.copyURLToFile(macroUrl, macroFile);
+               }
             }
-            String macro = matcher.group(1);
-            if (alreadyProcessed.contains(macro)) {
-                continue;
-            }
-            try {
-                String macroFilename = macro.toLowerCase() + ".m4";
-                File macroFile = new File(m4Directory, macroFilename);
-                if (!macroFile.exists()) {
-                    URL macroUrl = findResource(macroArtifacts, macro + ".m4");
-                    if (macroUrl != null) {
-                        if (getLog().isDebugEnabled()) {
-                            getLog().debug("Copying macro " + macro
-                                           + " to m4/" + macroFilename
-                                           + ", reading from " + macroUrl);
-                        }
-                        FileUtils.copyURLToFile(macroUrl, macroFile);
-                    }
-                }
-            } finally {
-                alreadyProcessed.add(macro);
-            }
-        }
-    }
+         } finally {
+            alreadyProcessed.add(macro);
+         }
+      }
+      reader.close();
+   }
 
 
-    private URL findResource(List<Artifact> artifacts, String resourcePath)
-            throws MalformedURLException, IOException {
-        URL url = null;
-        for (Artifact artifact : artifacts) {
-            File file = artifact.getFile();
-            if (file == null || !file.isFile()) {
-                continue;
+   private URL findResource(List<Artifact> artifacts, String resourcePath)
+         throws IOException {
+      URL url = null;
+      for (Artifact artifact : artifacts) {
+         File file = artifact.getFile();
+         if (file == null || !file.isFile()) {
+            continue;
+         }
+         URL fileURL = file.toURI().toURL();
+         JarFile jarFile = new JarFile(file);
+         try {
+            JarEntry entry = jarFile.getJarEntry(resourcePath);
+            if (entry != null) {
+               url = new URL("jar:" + fileURL.toExternalForm()
+                     + "!/" + resourcePath);
+               break;
             }
-            URL fileURL = file.toURI().toURL();
-            JarFile jarFile = new JarFile(file);
-            try {
-                JarEntry entry = jarFile.getJarEntry(resourcePath);
-                if (entry != null) {
-                    url = new URL("jar:" + fileURL.toExternalForm()
-                                  + "!/" + resourcePath);
-                    break;
-                }
-            } finally {
-                jarFile.close();
-            }
-        }
-        if (url == null) {
-            url = CompileMojo.class.getResource("m4/" + resourcePath.toLowerCase());
-        }
-        return url;
-    }
+         } finally {
+            jarFile.close();
+         }
+      }
+      if (url == null) {
+         url = CompileMojo.class.getResource("m4/" + resourcePath.toLowerCase());
+      }
+      return url;
+   }
 
 
-    private List<Artifact> resolveDependencies(ArtifactDependency[] dependencies)
-    throws ArtifactResolutionException,
-           ArtifactNotFoundException {
-        List<Artifact> artifacts = new ArrayList<Artifact>();
-        if (dependencies != null) {
-            for (ArtifactDependency dependency : dependencies) {
-                Artifact artifact = resolveDependency(dependency);
-                artifacts.add(artifact);
-            }
-        }
-        return artifacts;
-    }
+   private List<Artifact> resolveDependencies(ArtifactDependency[] dependencies)
+         throws ArtifactResolutionException,
+         ArtifactNotFoundException {
+      List<Artifact> artifacts = new ArrayList<Artifact>();
+      if (dependencies != null) {
+         for (ArtifactDependency dependency : dependencies) {
+            Artifact artifact = resolveDependency(dependency);
+            artifacts.add(artifact);
+         }
+      }
+      return artifacts;
+   }
 
 
-    @SuppressWarnings("unchecked")
-    private Artifact resolveDependency(ArtifactDependency dependency)
-            throws ArtifactResolutionException, ArtifactNotFoundException {
-        MavenProject parent = mavenProject.getParent();
-        if (parent != null) {
-            List<MavenProject>  sisters = parent.getCollectedProjects();
-            if (sisters != null) {
-                for (MavenProject sister : sisters) {
-                    Artifact artifact = sister.getArtifact();
-                    if (artifact != null) {
-                        return artifact;
-                    }
-                }
+   @SuppressWarnings("unchecked")
+   //TODO fix this with modern resolution code
+   private Artifact resolveDependency(ArtifactDependency dependency)
+         throws ArtifactResolutionException, ArtifactNotFoundException {
+      MavenProject parent = mavenProject.getParent();
+      if (parent != null) {
+         List<MavenProject>  sisters = parent.getCollectedProjects();
+         if (sisters != null) {
+            for (MavenProject sister : sisters) {
+               Artifact artifact = sister.getArtifact();
+               if (artifact != null) {
+                  return artifact;
+               }
             }
-        }
-        Artifact artifact =
+         }
+      }
+      Artifact artifact =
             artifactFactory.createArtifact(
-                    dependency.getGroupId(),
-                    dependency.getArtifactId(),
-                    dependency.getVersion(),
-                    null, "jar");
-        resolver.resolve(artifact,
-                         remoteRepositories,
-                         localRepository);
-        return artifact;
-    }
+                  dependency.getGroupId(),
+                  dependency.getArtifactId(),
+                  dependency.getVersion(),
+                  null, "jar");
+      resolver.resolve(artifact,
+            remoteRepositories,
+            localRepository);
+      return artifact;
+   }
 
 
-    private void initLogging() {
-        StreamLogAdapter sla = new StreamLogAdapter(getLog());
-        exec.setStdout(sla.getStdout());
-        exec.setStderr(sla.getStderr());
-    }
+   private void initLogging() {
+      StreamLogAdapter sla = new StreamLogAdapter(getLog());
+      exec.setStdout(sla.getStdout());
+      exec.setStderr(sla.getStderr());
+   }
 
-
-    static String command(final String command) {
-        final String envVar = "MAVEN_AUTOTOOLS_" + command.toUpperCase();
-        final String envValue = System.getenv(envVar);
-        return StringUtils.isEmpty(envValue) ? command : envValue;
-    }
-
-
-    private static void mergeEnvVar(Map<String,String> env,
-                             String key,
-                             String value) {
-        env.put(key, env.containsKey(key) ? env.get(key) + " " + value : value);
-    }
-
+   private static void mergeEnvVar(Map<String,String> env,
+         String key,
+         String value) {
+      env.put(key, env.containsKey(key) ? env.get(key) + " " + value : value);
+   }
 }

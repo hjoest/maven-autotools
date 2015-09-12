@@ -11,9 +11,9 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>net.sf.maven-autotools</groupId>
-        <artifactId>maven-autotools-plugin</artifactId>
-        <version>0.2</version>
+          <groupId>com.github.hjoest.maven.plugins</groupId>
+          <artifactId>autotools-maven-plugin</artifactId>
+          <version>0.3-SNAPSHOT</version>
         <configuration>
             <verbose>false</verbose>
         </configuration>
@@ -25,7 +25,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.12</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

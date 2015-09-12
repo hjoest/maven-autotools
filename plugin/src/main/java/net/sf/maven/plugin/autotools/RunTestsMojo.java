@@ -20,21 +20,25 @@ import java.io.File;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.codehaus.plexus.util.StringUtils;
+import org.sonatype.plexus.build.incremental.BuildContext;
 
 
 /**
- * @goal test
- * @phase test
- * @description run 'make check'
  */
+@Mojo(name = "test", 
+defaultPhase = LifecyclePhase.TEST)
 public final class RunTestsMojo
 extends AbstractMojo {
 
     /**
      * The working directory.
-     *
-     * @parameter expression="${project.build.directory}/autotools/work"
      */
+    @Parameter(defaultValue = "${project.build.directory}/autotools/work")
     private File workingDirectory;
 
     /**
@@ -47,7 +51,15 @@ extends AbstractMojo {
      * same configuration.
      */
     private RepeatedExecutions repeated = new RepeatedExecutions();
+    
+    @Component
+    private BuildContext buildContext;
+    
+    @Parameter
+    private Environment environment;
 
+    @Parameter(property = "autotools.test.skip", defaultValue = "${maven.test.skip}")
+    private boolean skipTests;
 
     /**
      * {@inheritDoc}
@@ -55,24 +67,37 @@ extends AbstractMojo {
      */
     public void execute()
     throws MojoExecutionException {
+        File workDir = getEnvironment().makeOsArchDirectory(workingDirectory);
         if (repeated.alreadyRun(getClass().getName(),
-                                workingDirectory)) {
+                                workDir)) {
             getLog().info("Skipping repeated execution");
             return;
         }
+        if(getEnvironment().isCrossCompiling() || skipTests) {
+           getLog().info("Skipping tests.");
+           return;
+        }
         initLogging();
         try {
-            workingDirectory.mkdirs();
+            workDir.mkdirs();
             String[] makeCheckCommand = {
                     "make",
                     "check"
             };
             exec.execProcess(makeCheckCommand,
                              null,
-                             workingDirectory);
+                  workDir);
+            buildContext.refresh(workDir);
         } catch (Exception ex) {
             throw new MojoExecutionException("Failed to run \"make\"", ex);
         }
+    }
+    
+    private Environment getEnvironment() {
+       if(environment==null) {
+          environment = new Environment();
+       }
+       return environment;
     }
 
 

@@ -31,53 +31,49 @@ import java.util.Map;
 
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.plugin.testing.SilentLog;
-
+import org.sonatype.plexus.build.incremental.BuildContext;
 
 public class CompileMojoTest
-extends AbstractMojoTestCase {
+      extends AbstractMojoTestCase {
 
     private static final String[] MOJO_TARGETS = {
-        "dependencies",
-        "configure",
-        "working",
-        "install"
+          "dependencies",
+          "configure",
+          "working",
+          "install",
+          "build"
     };
 
     private ProcessExecutor exec;
-
+    private BuildContext buildContext;
 
     public void setUp()
-    throws Exception {
+          throws Exception {
         super.setUp();
         exec = createStrictMock(ProcessExecutor.class);
+        buildContext = createStrictMock(BuildContext.class);
     }
 
 
     public void testConfigure()
-    throws Exception {
+          throws Exception {
         String name = "configure";
         CompileMojo mojo = createCompileMojo(name);
         File installDirectory =
-            getTestFile("target/test-harness/" + name + "/install");
-        Environment env = Environment.getEnvironment();
+              getTestFile("target/test-harness/" + name + "/install");
+        Environment env = mojo.getEnvironment();
         String host =
-            env.getSystemArchitecture() + "/" + env.getOperatingSystem();
+              env.getOperatingSystem() + "/" + env.getSystemArchitecture();
         String[][] commands = {
-                { "sh", "-c",
+              { "sh", "-c",
                     "../configure/configure"
-                    + " --silent"
-                    + " --bindir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "bin/" + host)) + "\""
-                    + " --libdir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "lib/" + host)) + "\""
-                    + " --includedir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "include")) + "\""
-                },
-                { "sh", "-c", "make" },
-                { "sh", "-c", "make install" }
+                          + " --silent"
+                          + " --prefix=\""
+                          + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, host)) + "\""
+              },
+              { "sh", "-c", "make" },
+              { "sh", "-c", "make install" }
         };
         setupExpectations(name, commands);
         replay(exec);
@@ -87,31 +83,25 @@ extends AbstractMojoTestCase {
 
 
     public void testAutoconf()
-    throws Exception {
+          throws Exception {
         String name = "autoconf";
         CompileMojo mojo = createCompileMojo(name);
         File installDirectory =
-            getTestFile("target/test-harness/" + name + "/install");
-        Environment env = Environment.getEnvironment();
+              getTestFile("target/test-harness/" + name + "/install");
+        Environment env = mojo.getEnvironment();
         String host =
-            env.getSystemArchitecture() + "/" + env.getOperatingSystem();
+              env.getOperatingSystem() + "/" + env.getSystemArchitecture();
         String[][] commands = {
-                { "sh", "-c", "autoconf" },
-                { "sh", "-c",
+              { "sh", "-c", "autoconf" },
+              { "sh", "-c",
                     "../configure/configure"
-                    + " --silent"
-                    + " --bindir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "bin/" + host)) + "\""
-                    + " --libdir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "lib/" + host)) + "\""
-                    + " --includedir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "include")) + "\""
-                },
-                { "sh", "-c", "make" },
-                { "sh", "-c", "make install" }
+                          + " --silent"
+                          + " --prefix=\""
+                          + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, host)) + "\""
+              },
+              { "sh", "-c", "make" },
+              { "sh", "-c", "make install" }
         };
         setupExpectations(name, commands);
         replay(exec);
@@ -121,35 +111,29 @@ extends AbstractMojoTestCase {
 
 
     public void testAutomake()
-    throws Exception {
+          throws Exception {
         String name = "automake";
         CompileMojo mojo = createCompileMojo(name);
         File installDirectory =
-            getTestFile("target/test-harness/" + name + "/install");
-        Environment env = Environment.getEnvironment();
+              getTestFile("target/test-harness/" + name + "/install");
+        Environment env = mojo.getEnvironment();
         String host =
-            env.getSystemArchitecture() + "/" + env.getOperatingSystem();
+              env.getOperatingSystem() + "/" + env.getSystemArchitecture();
         String[][] commands = {
-                { "sh", "-c", "aclocal" },
-                { "sh", "-c", "autoheader" },
-                { "sh", "-c", CompileMojo.command("libtoolize") + " -c -f --quiet" },
-                { "sh", "-c", "automake -c -f -a -W none" },
-                { "sh", "-c", "autoconf" },
-                { "sh", "-c",
+              { "sh", "-c", "aclocal" },
+              { "sh", "-c", "autoheader" },
+              { "sh", "-c", CompileMojo.command("libtoolize") + " -c -f --quiet" },
+              { "sh", "-c", "automake -c -f -a -W none" },
+              { "sh", "-c", "autoconf" },
+              { "sh", "-c",
                     "../configure/configure"
-                    + " --silent"
-                    + " --bindir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "bin/" + host)) + "\""
-                    + " --libdir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "lib/" + host)) + "\""
-                    + " --includedir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "include")) + "\""
-                },
-                { "sh", "-c", "make" },
-                { "sh", "-c", "make install" }
+                          + " --silent"
+                          + " --prefix=\""
+                          + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, host)) + "\""
+              },
+              { "sh", "-c", "make" },
+              { "sh", "-c", "make install" }
         };
         setupExpectations(name, commands);
         replay(exec);
@@ -159,38 +143,32 @@ extends AbstractMojoTestCase {
 
 
     public void testAutoscan()
-    throws Exception {
+          throws Exception {
         String name = "autoscan";
         CompileMojo mojo = createCompileMojo(name);
         setVariableValueToObject(mojo, "generatedScriptPostfix", "XYZ");
         File installDirectory =
-            getTestFile("target/test-harness/" + name + "/install");
-        Environment env = Environment.getEnvironment();
+              getTestFile("target/test-harness/" + name + "/install");
+        Environment env = mojo.getEnvironment();
         String host =
-            env.getSystemArchitecture() + "/" + env.getOperatingSystem();
+              env.getOperatingSystem() + "/" + env.getSystemArchitecture();
         String[][] commands = {
-                { "sh", "-c", "autoscan" },
-                { "sh", "-c", "./.autoscan-post-XYZ" },
-                { "sh", "-c", "aclocal" },
-                { "sh", "-c", "autoheader" },
-                { "sh", "-c", CompileMojo.command("libtoolize") + " -c -f --quiet" },
-                { "sh", "-c", "automake -c -f -a -W none" },
-                { "sh", "-c", "autoconf" },
-                { "sh", "-c",
+              { "sh", "-c", "autoscan" },
+              { "sh", "-c", "./.autoscan-post-XYZ" },
+              { "sh", "-c", "aclocal" },
+              { "sh", "-c", "autoheader" },
+              { "sh", "-c", CompileMojo.command("libtoolize") + " -c -f --quiet" },
+              { "sh", "-c", "automake -c -f -a -W none" },
+              { "sh", "-c", "autoconf" },
+              { "sh", "-c",
                     "../configure/configure"
-                    + " --silent"
-                    + " --bindir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "bin/" + host)) + "\""
-                    + " --libdir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "lib/" + host)) + "\""
-                    + " --includedir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "include")) + "\""
-                },
-                { "sh", "-c", "make" },
-                { "sh", "-c", "make install" }
+                          + " --silent"
+                          + " --prefix=\""
+                          + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, host)) + "\""
+              },
+              { "sh", "-c", "make" },
+              { "sh", "-c", "make install" }
         };
         setupExpectations(name, commands);
         replay(exec);
@@ -200,39 +178,33 @@ extends AbstractMojoTestCase {
 
 
     public void testPostinstall()
-    throws Exception {
+          throws Exception {
         String name = "postinstall";
         CompileMojo mojo = createCompileMojo(name);
         File installDirectory =
-            getTestFile("target/test-harness/" + name + "/install");
+              getTestFile("target/test-harness/" + name + "/install");
         File autotoolsDirectory = findSourceDirectory(name, "autotools");
         String postinstallScript =
-            new File(autotoolsDirectory, "postinstall.sh").getAbsolutePath();
-        Environment env = Environment.getEnvironment();
+              new File(autotoolsDirectory, "postinstall.sh").getAbsolutePath();
+        Environment env = mojo.getEnvironment();
         String host =
-            env.getSystemArchitecture() + "/" + env.getOperatingSystem();
+              env.getOperatingSystem() + "/" + env.getSystemArchitecture();
         String[][] commands = {
-                { "sh", "-c", "aclocal" },
-                { "sh", "-c", "autoheader" },
-                { "sh", "-c", CompileMojo.command("libtoolize") + " -c -f --quiet" },
-                { "sh", "-c", "automake -c -f -a -W none" },
-                { "sh", "-c", "autoconf" },
-                { "sh", "-c",
+              { "sh", "-c", "aclocal" },
+              { "sh", "-c", "autoheader" },
+              { "sh", "-c", CompileMojo.command("libtoolize") + " -c -f --quiet" },
+              { "sh", "-c", "automake -c -f -a -W none" },
+              { "sh", "-c", "autoconf" },
+              { "sh", "-c",
                     "../configure/configure"
-                    + " --silent"
-                    + " --bindir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "bin/" + host)) + "\""
-                    + " --libdir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "lib/" + host)) + "\""
-                    + " --includedir=\""
-                    + FileUtils.fixAbsolutePathForUnixShell(
-                          new File(installDirectory, "include")) + "\""
-                },
-                { "sh", "-c", "make" },
-                { "sh", "-c", "make install" },
-                { "sh", postinstallScript}
+                          + " --silent"
+                          + " --prefix=\""
+                          + FileUtils.fixAbsolutePathForUnixShell(
+                          new File(installDirectory, host)) + "\""
+              },
+              { "sh", "-c", "make" },
+              { "sh", "-c", "make install" },
+              { "sh", postinstallScript}
         };
         setupExpectations(name, commands);
         replay(exec);
@@ -242,7 +214,7 @@ extends AbstractMojoTestCase {
 
 
     private CompileMojo createCompileMojo(String testCase)
-    throws Exception {
+          throws Exception {
         CompileMojo mojo = new CompileMojo();
         for (String target : MOJO_TARGETS) {
             File directory = createOrScrubTargetDirectory(testCase, target);
@@ -251,17 +223,18 @@ extends AbstractMojoTestCase {
         setVariableValueToObject(mojo, "autoreconf", false);
         setVariableValueToObject(mojo, "macroDirectoryName", "m4");
         setVariableValueToObject(
-                mojo, "nativeMainDirectory",
-                findSourceDirectory(testCase, "native"));
+              mojo, "nativeMainDirectory",
+              findSourceDirectory(testCase, "native"));
         File autotoolsDirectory = findSourceDirectory(testCase, "autotools");
         setVariableValueToObject(
-                mojo, "autotoolsMainDirectory",
-                autotoolsDirectory
-                );
+              mojo, "autotoolsMainDirectory",
+              autotoolsDirectory
+        );
         setVariableValueToObject(
-                mojo, "postInstallScript",
-                new File(autotoolsDirectory, "postinstall.sh"));
+              mojo, "postInstallScript",
+              new File(autotoolsDirectory, "postinstall.sh"));
         setVariableValueToObject(mojo, "exec", exec);
+        setVariableValueToObject(mojo, "buildContext", buildContext);
         mojo.setLog(new SilentLog());
         return mojo;
     }
@@ -269,34 +242,34 @@ extends AbstractMojoTestCase {
 
     @SuppressWarnings("unchecked")
     private void setupExpectations(String name, String[][] commands)
-    throws Exception {
+          throws Exception {
         exec.setStdout(isA(OutputStream.class));
         exec.setStderr(isA(OutputStream.class));
         File configureDirectory =
-            getTestFile("target/test-harness/" + name + "/configure");
+              getTestFile("target/test-harness/" + name + "/configure");
         File workingDirectory =
-            getTestFile("target/test-harness/" + name + "/working");
+              getTestFile("target/test-harness/" + name + "/working");
         File installDirectory =
-            getTestFile("target/test-harness/" + name + "/install");
+              getTestFile("target/test-harness/" + name + "/install");
         for (String[] command : commands) {
             File directory = configureDirectory;
             if (command[1].endsWith("/postinstall.sh")) {
                 directory = installDirectory;
             } else if (command[2].startsWith("../configure/configure")
-                || command[2].equals("make")
-                || command[2].equals("make install")) {
+                  || command[2].equals("make")
+                  || command[2].equals("make install")) {
                 directory = workingDirectory;
             }
             exec.execProcess(
-                    aryEq(command),
-                    (Map<String, String>) anyObject(),
-                    eq(directory));
+                  aryEq(command),
+                  (Map<String, String>) anyObject(),
+                  eq(directory));
         }
     }
 
 
     private File createOrScrubTargetDirectory(String testCase, String target)
-    throws Exception {
+          throws Exception {
         File parent = getTestFile("target/test-harness/" + testCase);
         File directory = new File(parent, target);
         if (directory.exists()) {
@@ -309,9 +282,9 @@ extends AbstractMojoTestCase {
 
     private File findSourceDirectory(String testCase, String source) {
         return new File(
-                getBasedir(),
-                "src/test/resources/test-harness/"
-                + testCase + "/src/main/" + source);
+              getBasedir(),
+              "src/test/resources/test-harness/"
+                    + testCase + "/src/main/" + source);
     }
 
 }

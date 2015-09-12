@@ -27,8 +27,8 @@
         <plugins>
             <plugin>
                 <groupId>net.sf.maven-autotools</groupId>
-                <artifactId>maven-autotools-plugin</artifactId>
-                <version>0.2</version>
+                <artifactId>autotools-maven-plugin</artifactId>
+                <version>0.3-SNAPSHOT</version>
                 <configuration/>
             </plugin>
         </plugins>
